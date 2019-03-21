@@ -10,14 +10,17 @@ class GraphRenderer extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      data:{}
+      data:{},
+      refreshCount:0,
+      max:100,
+      min:0,
     }
   }
 
   componentDidMount() {
     this.timerID = setInterval(
       () => this.refresh(),
-      200
+      50
     );
   }
 
@@ -27,10 +30,19 @@ class GraphRenderer extends React.Component{
 
   refresh() {
     const currentData = this.state.data;
+    const refCnt = this.state.refreshCount + 1;
     currentData[Object.keys(currentData).length + 1] = getRandomArbitrary(0,10);
+
+    if(refCnt>50){
+      this.setState({
+        max: refCnt,
+        min: refCnt-50,
+      });
+    }
     
     this.setState({
-      data:currentData 
+      data:currentData, 
+      refreshCount: refCnt
     });
   }
 
@@ -39,7 +51,7 @@ class GraphRenderer extends React.Component{
     
       <div>
       <p>Ready for graph making!</p>
-      <LineChart data={this.state.data} curve={false} pointRadius={0}/>
+      <LineChart data={this.state.data} curve={false} xmin={this.state.min} xmax={this.state.max}/>
     </div>
     
     );
