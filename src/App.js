@@ -1,19 +1,26 @@
 import React, { Component } from 'react';
-import logo, { ReactComponent } from './logo.svg';
 import './App.css';
-import ReactChartkick, { LineChart, PieChart } from 'react-chartkick'
-import Chart from 'chart.js'
+import '../node_modules/react-vis/dist/style.css';
+import {XYPlot, LineSeries} from 'react-vis';
 
-ReactChartkick.addAdapter(Chart)
+const originalData = [
+  {x: 0, y: 8},
+  {x: 1, y: 5},
+  {x: 2, y: 4},
+  {x: 3, y: 9},
+  {x: 4, y: 1},
+  {x: 5, y: 7},
+  {x: 6, y: 6},
+  {x: 7, y: 3},
+  {x: 8, y: 2},
+  {x: 9, y: 0}
+];
 
-class GraphRenderer extends React.Component{
+class LineStream extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      data:{},
-      refreshCount:0,
-      max:100,
-      min:0,
+      data:originalData,
     }
   }
 
@@ -30,20 +37,13 @@ class GraphRenderer extends React.Component{
 
   refresh() {
     const currentData = this.state.data;
-    const refCnt = this.state.refreshCount + 1;
-    currentData[Object.keys(currentData).length + 1] = getRandomArbitrary(0,10);
-
-    if(refCnt>50){
-      this.setState({
-        max: refCnt,
-        min: refCnt-50,
-      });
-    }
+    currentData.push(addData(currentData[currentData.length - 1].x));
     
     this.setState({
       data:currentData, 
-      refreshCount: refCnt
+      
     });
+
   }
 
   render(){
@@ -51,7 +51,9 @@ class GraphRenderer extends React.Component{
     
       <div>
       <p>Ready for graph making!</p>
-      <LineChart data={this.state.data} curve={false} xmin={this.state.min} xmax={this.state.max}/>
+      <XYPlot height={300} width={800}>
+          <LineSeries data={this.state.data} />
+        </XYPlot>
     </div>
     
     );
@@ -59,15 +61,13 @@ class GraphRenderer extends React.Component{
     }
   }
 
-
-
 class App extends Component {
   
   render() {
     
     return (
       <div className="App">
-      <GraphRenderer/>
+      <LineStream/>
       </div>
     );
   }
@@ -75,5 +75,17 @@ class App extends Component {
 
 function getRandomArbitrary(min, max) {
   return Math.random() * (max - min) + min;}
+
+function addData(order){
+  
+  var obj = {
+    x: order + 1,
+    y: getRandomArbitrary(0,100)
+    
+  };
+ 
+  return obj;
+}
+
 
 export default App;

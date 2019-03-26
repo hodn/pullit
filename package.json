@@ -4,10 +4,16 @@
   "private": true,
   "dependencies": {
     "chart.js": "^2.8.0",
+    "chartjs-plugin-streaming": "^1.8.0",
+    "pondjs": "^0.8.10",
     "react": "^16.8.4",
+    "react-chartjs-2": "^2.7.4",
     "react-chartkick": "^0.3.0",
     "react-dom": "^16.8.4",
-    "react-scripts": "2.1.8"
+    "react-rt-chart": "^2.0.0",
+    "react-scripts": "2.1.8",
+    "react-timeseries-charts": "^0.15.5",
+    "react-vis": "^1.11.6"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -23,5 +29,11 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.4.0",
+    "@babel/preset-env": "^7.4.2",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.0.5"
+  }
 }
