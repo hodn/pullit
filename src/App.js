@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import '../node_modules/react-vis/dist/style.css';
-import {XYPlot, LineSeries} from 'react-vis';
+import {XYPlot, LineSeries, XAxis, YAxis, LineMarkSeries} from 'react-vis';
 
 const originalData = [
   {x: 0, y: 8},
@@ -20,14 +20,16 @@ class LineStream extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      data:originalData,
+      data: this.props.data,
+      ticks: 0,
+      xMin: 0
     }
   }
 
   componentDidMount() {
     this.timerID = setInterval(
       () => this.refresh(),
-      50
+    500
     );
   }
 
@@ -38,10 +40,12 @@ class LineStream extends React.Component{
   refresh() {
     const currentData = this.state.data;
     currentData.push(addData(currentData[currentData.length - 1].x));
-    
+    const currentTicks = this.state.ticks;
+
     this.setState({
-      data:currentData, 
-      
+      data: currentData, 
+      ticks: currentTicks + 1,
+      xMin: currentTicks
     });
 
   }
@@ -50,11 +54,15 @@ class LineStream extends React.Component{
     return(
     
       <div>
-      <p>Ready for graph making!</p>
-      <XYPlot height={300} width={800}>
-          <LineSeries data={this.state.data} />
+        <p>Ready for graph making!</p>
+        <XYPlot height={300} width={800} xDomain={[this.state.xMin, this.state.data.length]}>
+          
+          <XAxis/>
+          <YAxis/>
+          <LineSeries data={this.state.data} getNull={(d) => d.x !== this.state.xMin - 1} animation />
+
         </XYPlot>
-    </div>
+      </div>
     
     );
 
@@ -67,7 +75,7 @@ class App extends Component {
     
     return (
       <div className="App">
-      <LineStream/>
+      <LineStream data = {originalData}/>
       </div>
     );
   }
@@ -80,7 +88,7 @@ function addData(order){
   
   var obj = {
     x: order + 1,
-    y: getRandomArbitrary(0,100)
+    y: getRandomArbitrary(0,10)
     
   };
  
