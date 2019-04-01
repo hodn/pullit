@@ -2,38 +2,30 @@
   "name": "ictm-test",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
-    "chart.js": "^2.8.0",
-    "chartjs-plugin-streaming": "^1.8.0",
-    "pondjs": "^0.8.10",
-    "react": "^16.8.4",
-    "react-chartjs-2": "^2.7.4",
-    "react-chartkick": "^0.3.0",
-    "react-dom": "^16.8.4",
-    "react-rt-chart": "^2.0.0",
-    "react-scripts": "2.1.8",
-    "react-timeseries-charts": "^0.15.5",
-    "react-vis": "^1.11.6"
+  "devDependencies": {
+    "electron": "^1.4.14",
+    "electron-rebuild": "^1.8.4",
+    "react-scripts": "0.8.5"
   },
+  "dependencies": {
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2",
+    "react-vis": "^1.11.6",
+    "serialport": "^7.1.4"
+  },
+  "main": "src/electron-starter.js",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "install": "electron-rebuild"
   },
   "browserslist": [
     ">0.2%",
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ],
-  "devDependencies": {
-    "@babel/core": "^7.4.0",
-    "@babel/preset-env": "^7.4.2",
-    "babel-core": "^6.26.3",
-    "babel-loader": "^8.0.5"
-  }
+  ]
 }

@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import './App.css';
 import '../node_modules/react-vis/dist/style.css';
-import {XYPlot, LineSeries, XAxis, YAxis, LineMarkSeries} from 'react-vis';
+import {XYPlot, LineSeries, XAxis, YAxis} from 'react-vis';
+
+const { ipcRenderer } = window.require('electron');
 
 const originalData = [
   {x: 0, y: 8},
@@ -16,19 +18,20 @@ const originalData = [
   {x: 9, y: 0}
 ];
 
-class LineStream extends React.Component{
+class RTLineGraph extends React.Component{
   constructor(props){
     super(props);
     this.state = {
       data: this.props.data,
       ticks: 0,
-      xMin: 0
+      xMin: 0,
+      name: this.props.name
     }
   }
 
   componentDidMount() {
     this.timerID = setInterval(
-      () => this.refresh(),
+      () => this.refreshData(),
     500
     );
   }
@@ -37,10 +40,12 @@ class LineStream extends React.Component{
     clearInterval(this.timerID);
   }
 
-  refresh() {
+  refreshData() {
     const currentData = this.state.data;
     currentData.push(addData(currentData[currentData.length - 1].x));
     const currentTicks = this.state.ticks;
+
+    ipcRenderer.send("refreshData");
 
     this.setState({
       data: currentData, 
@@ -54,12 +59,12 @@ class LineStream extends React.Component{
     return(
     
       <div>
-        <p>Ready for graph making!</p>
+        <p>{this.state.name}</p>
         <XYPlot height={300} width={800} xDomain={[this.state.xMin, this.state.data.length]}>
           
           <XAxis/>
           <YAxis/>
-          <LineSeries data={this.state.data} getNull={(d) => d.x !== this.state.xMin - 1} animation />
+          <LineSeries data={this.state.data} getNull={(d) => d.x !==this.state.xMin - 1} animation />
 
         </XYPlot>
       </div>
@@ -75,7 +80,7 @@ class App extends Component {
     
     return (
       <div className="App">
-      <LineStream data = {originalData}/>
+      <RTLineGraph data={originalData} name="Real time data"/>
       </div>
     );
   }
