@@ -4,21 +4,6 @@ const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
 
-const path = require('path');
-const url = require('url');
-const Delimiter = require('@serialport/parser-delimiter')
-
-const SerialPort = require('serialport')
-const port = new SerialPort('com5', {
-  baudRate: 9600
-})
-const parser = port.pipe(new Delimiter({ delimiter: '\n' }))
-  // Switches the port into "flowing mode"
-  parser.on('data', function (data) {
-        console.log('Data:', data.toString("utf-8"))
-    
-  })
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -66,16 +51,37 @@ app.on('activate', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
-const ipc = electron.ipcMain;
+
+//Interprocess communication with React
+const ipcMain = electron.ipcMain;
 const dialog = electron.dialog;
-ipc.on("componentDidMount", function(event) {
+ipcMain.on('refreshData', (event, arg) => {
+    event.sender.send('refreshData-sent', parsedData[parsedData.length-1])
+  })
+  
 
-  const options = {
-    type: 'info',
-    title: 'Component mounted',
-    message: 'It was mounted 5 seconds ago',
-    detail: 'React Component',
-  };
-  dialog.showMessageBox(options);
+//Parsing data from COM port
+
+const path = require('path');
+const url = require('url');
+const Delimiter = require('@serialport/parser-delimiter');
+const moment = require('moment');
+let parsedData = [];
+
+function getActualTime(){    
+    let timestamp = new Date();
+
+    console.log(timestamp);
+    return timestamp.getSeconds();
+};
+
+const SerialPort = require('serialport')
+const port = new SerialPort('com5', {
+  baudRate: 9600
 })
-
+const parser = port.pipe(new Delimiter({ delimiter: '\n' }))
+  // Switches the port into "flowing mode"
+  parser.on('data', function (data) {
+        parsedData.push({x: getActualTime(), y: parseInt(data.toString())});
+        console.log(parsedData);
+  });

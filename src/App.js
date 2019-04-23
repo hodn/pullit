@@ -3,30 +3,21 @@ import './App.css';
 import '../node_modules/react-vis/dist/style.css';
 import {XYPlot, LineSeries, XAxis, YAxis} from 'react-vis';
 
+//Tunnel to Electron
 const { ipcRenderer } = window.require('electron');
 
-const originalData = [
-  {x: 0, y: 8},
-  {x: 1, y: 5},
-  {x: 2, y: 4},
-  {x: 3, y: 9},
-  {x: 4, y: 1},
-  {x: 5, y: 7},
-  {x: 6, y: 6},
-  {x: 7, y: 3},
-  {x: 8, y: 2},
-  {x: 9, y: 0}
-];
 
+
+//Real time graph component
 class RTLineGraph extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      data: this.props.data,
-      ticks: 0,
+      data: [{x: 0, y:0},],
       xMin: 0,
       name: this.props.name
     }
+
   }
 
   componentDidMount() {
@@ -34,6 +25,17 @@ class RTLineGraph extends React.Component{
       () => this.refreshData(),
     500
     );
+
+    ipcRenderer.on('refreshData-sent', (event, arg) => {
+      const currentData = this.state.data;
+      currentData.push(arg);
+      console.log(currentData[currentData.length-1]);
+  
+      this.setState({
+        data: currentData
+      });
+      
+    });
   }
 
   componentWillUnmount() {
@@ -41,30 +43,20 @@ class RTLineGraph extends React.Component{
   }
 
   refreshData() {
-    const currentData = this.state.data;
-    currentData.push(addData(currentData[currentData.length - 1].x));
-    const currentTicks = this.state.ticks;
-
-    ipcRenderer.send("refreshData");
-
-    this.setState({
-      data: currentData, 
-      ticks: currentTicks + 1,
-      xMin: currentTicks
-    });
-
+    ipcRenderer.send('refreshData');
   }
 
+  
   render(){
     return(
     
       <div>
         <p>{this.state.name}</p>
-        <XYPlot height={300} width={800} xDomain={[this.state.xMin, this.state.data.length]}>
+        <XYPlot height={300} width={800} xType="time" >
           
           <XAxis/>
           <YAxis/>
-          <LineSeries data={this.state.data} getNull={(d) => d.x !==this.state.xMin - 1} animation />
+          <LineSeries data={this.state.data} animation />
 
         </XYPlot>
       </div>
@@ -80,24 +72,10 @@ class App extends Component {
     
     return (
       <div className="App">
-      <RTLineGraph data={originalData} name="Real time data"/>
+      <RTLineGraph name="Real Time Data"/>
       </div>
     );
   }
-}
-
-function getRandomArbitrary(min, max) {
-  return Math.random() * (max - min) + min;}
-
-function addData(order){
-  
-  var obj = {
-    x: order + 1,
-    y: getRandomArbitrary(0,10)
-    
-  };
- 
-  return obj;
 }
 
 
