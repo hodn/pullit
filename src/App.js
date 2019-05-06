@@ -3,62 +3,58 @@ import './App.css';
 import '../node_modules/react-vis/dist/style.css';
 import {XYPlot, LineSeries, XAxis, YAxis} from 'react-vis';
 
-//Tunnel to Electron
+//Communication with Electron
 const { ipcRenderer } = window.require('electron');
-
-
 
 //Real time graph component
 class RTLineGraph extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      data: [{x: 0, y:0},],
-      xMin: 0,
-      name: this.props.name
+      events: []
     }
 
   }
 
   componentDidMount() {
-    this.timerID = setInterval(
-      () => this.refreshData(),
-    500
-    );
-
-    ipcRenderer.on('refreshData-sent', (event, arg) => {
-      const currentData = this.state.data;
-      currentData.push(arg);
-      console.log(currentData[currentData.length-1]);
-  
-      this.setState({
-        data: currentData
-      });
+    //Message for Electron
+    ipcRenderer.send('graph-mounted', this.props.dataType) 
+    //Listener on parsed data from Electron
+    ipcRenderer.on('ch1-parsed', (event, arg) => {
       
-    });
+      const parsedEvent = {x: arg[0], y: arg[1]}
+      
+      const newEvents = this.state.events
+      newEvents.push(parsedEvent)
+      
+      if(newEvents.length > 100){
+        newEvents.splice(0, 1)
+      }
+
+      this.setState({events: newEvents})
+    })
+
   }
 
   componentWillUnmount() {
-    clearInterval(this.timerID);
+    
   }
 
-  refreshData() {
-    ipcRenderer.send('refreshData');
-  }
-
-  
-  render(){
+  //What the actual component renders
+  render(){    
+    
     return(
     
       <div>
-        <p>{this.state.name}</p>
-        <XYPlot height={300} width={800} xType="time" >
+        <p>{this.props.name}</p>
+        <XYPlot height={300} width={800} xType="time">
           
           <XAxis/>
           <YAxis/>
-          <LineSeries data={this.state.data} animation />
+          <LineSeries data={this.state.events}  curve={'curveMonotoneX'} />
 
         </XYPlot>
+
       </div>
     
     );
@@ -66,13 +62,17 @@ class RTLineGraph extends React.Component{
     }
   }
 
-class App extends Component {
+
+//The app frontend itself
+  class App extends Component {
   
   render() {
     
     return (
       <div className="App">
-      <RTLineGraph name="Real Time Data"/>
+      
+      <RTLineGraph name="Channel 1" dataType="channel_1"/>
+      
       </div>
     );
   }

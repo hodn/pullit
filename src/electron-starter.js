@@ -51,37 +51,60 @@ app.on('activate', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
-
-//Interprocess communication with React
-const ipcMain = electron.ipcMain;
-const dialog = electron.dialog;
-ipcMain.on('refreshData', (event, arg) => {
-    event.sender.send('refreshData-sent', parsedData[parsedData.length-1])
-  })
   
 
-//Parsing data from COM port
+//////////////////////////////////////// Parsing data from COM port ////////////////////////////////////////
 
 const path = require('path');
 const url = require('url');
 const Delimiter = require('@serialport/parser-delimiter');
-const moment = require('moment');
-let parsedData = [];
 
-function getActualTime(){    
-    let timestamp = new Date();
-
-    console.log(timestamp);
-    return timestamp.getSeconds();
-};
-
+//Establishing connection with COM PORT
 const SerialPort = require('serialport')
-const port = new SerialPort('com5', {
-  baudRate: 9600
+const port = new SerialPort('com6', {
+  baudRate: 115200
 })
-const parser = port.pipe(new Delimiter({ delimiter: '\n' }))
+const ipcMain = electron.ipcMain;
+
+//Listener on React component mounting
+ipcMain.on('graph-mounted', (event, arg) => {
+    const parser = port.pipe(new Delimiter({ delimiter: [0x00] }))
   // Switches the port into "flowing mode"
-  parser.on('data', function (data) {
-        parsedData.push({x: getActualTime(), y: parseInt(data.toString())});
-        console.log(parsedData);
+        parser.on('data', function(data) {
+            
+            let parsedData = arrayParserEZ24(Uint8Array.from(data))
+            console.log("MAMA")
+            console.log(parsedData)
+            switch(arg) {
+                case "channel_1":
+                    event.sender.send('ch1-parsed', [Date.now(), parsedData[0]])
+                  break;
+                case "channel_2":
+                    event.sender.send('data-parsed', [Date.now(), parsedData[1]])
+                  break;
+                case "channel_3":
+                    event.sender.send('data-parsed', [Date.now(), parsedData[2]])
+                default:
+                    event.sender.send('data-parsed', [Date.now(), parsedData[3]])
+              }  
   });
+  })
+
+function parserEZ24([a, b, c, d]){
+    
+    let x = a>>1 | ((d & 2) << 6)
+    let y = b>>1 | ((d & 4) << 5)
+    let z = c>>1 | ((d & 8) << 4)
+
+    return (z << 16) | (y << 8) | x;
+}
+
+function arrayParserEZ24(dataArray){
+
+    let channel_1 = parserEZ24(dataArray.slice(0,4));
+    let channel_2 = parserEZ24(dataArray.slice(4,8));
+    let channel_3 = parserEZ24(dataArray.slice(8,12));
+    let orderCheck = dataArray[12];
+    
+    return [channel_1, channel_2, channel_3, orderCheck]
+}
