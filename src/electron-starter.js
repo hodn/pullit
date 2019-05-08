@@ -73,17 +73,17 @@ ipcMain.on('graph-mounted', (event, arg) => {
         parser.on('data', function(data) {
             
             let parsedData = arrayParserEZ24(Uint8Array.from(data))
-            console.log("MAMA")
             console.log(parsedData)
             switch(arg) {
-                case "channel_1":
+                case "ch1":
                     event.sender.send('ch1-parsed', [Date.now(), parsedData[0]])
                   break;
-                case "channel_2":
-                    event.sender.send('data-parsed', [Date.now(), parsedData[1]])
+                case "ch2":
+                    event.sender.send('ch2-parsed', [Date.now(), parsedData[1]])
                   break;
-                case "channel_3":
-                    event.sender.send('data-parsed', [Date.now(), parsedData[2]])
+                case "ch3":
+                    event.sender.send('ch3-parsed', [Date.now(), parsedData[2]])
+                    break;
                 default:
                     event.sender.send('data-parsed', [Date.now(), parsedData[3]])
               }  
