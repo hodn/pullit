@@ -59,37 +59,55 @@ const path = require('path');
 const url = require('url');
 const Delimiter = require('@serialport/parser-delimiter');
 
+
 //Establishing connection with COM PORT
 const SerialPort = require('serialport')
+SerialPort.list().then(
+    ports => ports.forEach(console.log),
+    err => console.error(err)
+  )
 const port = new SerialPort('com6', {
   baudRate: 115200
 })
-const ipcMain = electron.ipcMain;
+const ipcMain = electron.ipcMain
 
 //Listener on React component mounting
-ipcMain.on('graph-mounted', (event, arg) => {
+ipcMain.on('clear-to-send', (event, arg) => {
     const parser = port.pipe(new Delimiter({ delimiter: [0x00] }))
-  // Switches the port into "flowing mode"
+
+    const ch1Buffer = []
+    const ch2Buffer = []
+    const ch3Buffer = []
+    const ch4Buffer = []
+    let aggSet = []
+    let dataSet = []
+    
+    // Switches the port into "flowing mode"
         parser.on('data', function(data) {
             
-            let parsedData = arrayParserEZ24(Uint8Array.from(data))
-            console.log(parsedData)
-            switch(arg) {
-                case "ch1":
-                    event.sender.send('ch1-parsed', [Date.now(), parsedData[0]])
-                  break;
-                case "ch2":
-                    event.sender.send('ch2-parsed', [Date.now(), parsedData[1]])
-                  break;
-                case "ch3":
-                    event.sender.send('ch3-parsed', [Date.now(), parsedData[2]])
-                    break;
-                default:
-                    event.sender.send('data-parsed', [Date.now(), parsedData[3]])
-              }  
+            const channelData = arrayParserEZ24(Uint8Array.from(data))
+
+            ch1Buffer.push(channelData[0])
+            ch2Buffer.push(channelData[1])
+            ch3Buffer.push(channelData[2])
+            ch4Buffer.push(channelData[3])
+
+            if (ch4Buffer.length > 10) {
+                
+                aggSet = [aggregator(ch1Buffer), aggregator(ch2Buffer), aggregator(ch3Buffer)]
+                ch1Buffer.splice(0, 10)
+                ch2Buffer.splice(0, 10)
+                ch3Buffer.splice(0, 10)
+                ch4Buffer.splice(0, 10)
+            }
+            
+            dataSet = [Date.now(), channelData[0], channelData[1], channelData[2], channelData[3]]
+            event.sender.send('data-parsed', [dataSet, aggSet])
+            
   });
   })
 
+ 
 function parserEZ24([a, b, c, d]){
     
     let x = a>>1 | ((d & 2) << 6)
@@ -105,6 +123,24 @@ function arrayParserEZ24(dataArray){
     let channel_2 = parserEZ24(dataArray.slice(4,8));
     let channel_3 = parserEZ24(dataArray.slice(8,12));
     let orderCheck = dataArray[12];
+  
+    return [unitConverter(channel_1), unitConverter(channel_2), unitConverter(channel_3), orderCheck]
+}
+
+function unitConverter(number){
+
+    const unit = 8388608/3000
+    let result = (number/unit) - 3000
     
-    return [channel_1, channel_2, channel_3, orderCheck]
+    return result
+}
+
+function aggregator(bufferArray){
+    let total = 0;
+    for(var i = 0; i < bufferArray.length; i++) {
+    total += bufferArray[i];
+}
+    let avg = total / 10;
+    return avg
+
 }

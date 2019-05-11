@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import '../node_modules/react-vis/dist/style.css';
-import {XYPlot, LineSeries, XAxis, YAxis} from 'react-vis';
+import SmoothieComponent, { TimeSeries } from 'react-smoothie';
 
 //Communication with Electron
 const { ipcRenderer } = window.require('electron');
@@ -11,128 +11,109 @@ class RTLineGraph extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      ch1_events: [],
-      ch2_events: [],
-      ch3_events: []
+      events: new TimeSeries({}),
+      value: 0
     }
 
   }
 
   componentDidMount() {
     //Message for Electron
-    ipcRenderer.send('graph-mounted', this.props.dataType) 
+    ipcRenderer.send('clear-to-send') 
     //Listener on parsed data from Electron
-    ipcRenderer.on('ch1-parsed', (event, arg) => {
+    ipcRenderer.on('data-parsed', (event, arg) => {
       
-      const parsedEvent = {x: arg[0], y: arg[1]}
-      
-      const newEvents = this.state.ch1_events
-      newEvents.push(parsedEvent)
-      
-      if(newEvents.length > 50){
-        newEvents.splice(0, 1)
-      }
+      const time = arg[0][0]
+      const measurement = arg[0][this.props.channel]
+      const newEvents = this.state.events
+      newEvents.append(time, measurement)
 
-      this.setState({ch1_events: newEvents})
-    
+      const aggValue = arg[1][this.props.channel-1]
+
+      this.setState({events: newEvents, value: aggValue.toFixed(2)})
+      
     })
 
-    ipcRenderer.on('ch2-parsed', (event, arg) => {
-      
-      const parsedEvent = {x: arg[0], y: arg[1]}
-      
-      const newEvents = this.state.ch2_events
-      newEvents.push(parsedEvent)
-      
-      if(newEvents.length > 50){
-        newEvents.splice(0, 1)
-      }
-
-      this.setState({ch2_events: newEvents})
-     
-    })
-
-    ipcRenderer.on('ch3-parsed', (event, arg) => {
-      
-      const parsedEvent = {x: arg[0], y: arg[1]}
-      
-      const newEvents = this.state.ch3_events
-      newEvents.push(parsedEvent)
-      
-      if(newEvents.length > 50){
-        newEvents.splice(0, 1)
-      }
-
-      this.setState({ch3_events: newEvents})
-     
-    })
   }
 
-  componentWillUnmount() {
+  componentWillUnmount(){
     
-  }
-
-  //What the actual component renders
+}
+  
+//What the actual component renders
   render(){    
-    switch(this.props.dataType) {
-      case "ch1":
       return(
     
         <div>
-          <p>{this.props.name}</p>
-          <XYPlot height={300} width={800} xType="time">
-            
-            <XAxis/>
-            <YAxis/>
-            <LineSeries data={this.state.ch1_events} curve={'curveMonotoneX'} />
-  
-          </XYPlot>
-  
+          <h2>{this.props.name}</h2>
+          <p>{this.state.value} {this.props.unit}</p>
+          <SmoothieComponent
+              width="553" 
+              height="195"
+              interpolation='linear'
+              scaleSmoothing={0.424}
+              millisPerPixel={16}
+              grid={{fillStyle:'rgba(255,255,255,0.92)',strokeStyle:'rgba(0,0,0,0.16)',sharpLines:true,borderVisible:true}}
+              labels={{fillStyle:'#000000',fontSize:13,precision:0}}
+              streamDelay={100}
+              series={[
+                {
+                  data: this.state.events,
+                  lineWidth:3.9,
+                  strokeStyle:'#000080'
+                }
+              ]}
+      />
+       
         </div>
       
       );
-      case "ch2":
-      return(
-    
-        <div>
-          <p>{this.props.name}</p>
-          <XYPlot height={300} width={800} xType="time">
-            
-            <XAxis/>
-            <YAxis/>
-            <LineSeries data={this.state.ch2_events} curve={'curveMonotoneX'} />
-  
-          </XYPlot>
-  
-        </div>
-      
-      );
-      case "ch3":
-      return(
-    
-        <div>
-          <p>{this.props.name}</p>
-          <XYPlot height={300} width={800} xType="time">
-            
-            <XAxis/>
-            <YAxis/>
-            <LineSeries data={this.state.ch3_events} curve={'curveMonotoneX'} />
-  
-          </XYPlot>
-  
-        </div>
-      
-      );
-      default:
-          return console.log("err")
-  }
     
     
   }
     
 }
-  
 
+class StateBar extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      streaming: false
+    }
+
+  }
+
+  componentDidMount() {
+    ipcRenderer.on('data-parsed', (event, arg) => {
+      this.setState({streaming: true})
+    })
+  }
+
+  componentWillUnmount(){
+    
+}
+  
+//What the actual component renders
+  render(){    
+      
+   if(this.state.streaming === true) {
+
+      return(
+    
+        <p></p>
+      )
+    
+    
+    }else{
+
+      return(
+    
+        <p>NO</p>
+      )
+    }
+  }
+    
+}
 
 //The app frontend itself
   class App extends Component {
@@ -141,10 +122,11 @@ class RTLineGraph extends React.Component{
     
     return (
       <div className="App">
-      
-      <RTLineGraph name="Channel 1" dataType="ch1"/>
-      <RTLineGraph name="Channel 2" dataType="ch2"/>
-      <RTLineGraph name="Channel 3" dataType="ch3"/>
+       <StateBar/>
+      <RTLineGraph name="Channel 1" channel={1} unit="mV"/>
+      <RTLineGraph name="Channel 2" channel={2} unit="mV"/>
+      <RTLineGraph name="Channel 3" channel={3} unit="mV"/>
+      <RTLineGraph name="Channel 4" channel={4}/>
       
       </div>
     );
