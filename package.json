@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "csv": "^5.1.1",
+    "json2csv": "^4.5.1",
     "moment": "^2.24.0",
     "pondjs": "^1.0.1-0",
     "react": "^15.4.2",
