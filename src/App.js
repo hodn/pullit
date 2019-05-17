@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import './App.css';
 import '../node_modules/react-vis/dist/style.css';
 import SmoothieComponent, { TimeSeries } from 'react-smoothie';
+import {XYPlot, XAxis, YAxis, LineSeries, HorizontalGridLines} from 'react-vis';
 
 //Communication with Electron
 const { ipcRenderer } = window.require('electron');
 
 //Real time graph component
-class RTLineGraph extends React.Component{
+class RTGraph extends React.Component{
   constructor(props){
     super(props);
     this.state = {
@@ -47,8 +48,6 @@ class RTLineGraph extends React.Component{
           <h1>{this.state.value} {this.props.unit}</h1>
           <SmoothieComponent
               responsive
-              width="553" 
-              height="195"
               interpolation='linear'
               scaleSmoothing={0.424}
               millisPerPixel={16}
@@ -73,6 +72,98 @@ class RTLineGraph extends React.Component{
     
 }
 
+class HistoryGraph extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      completeData:[],
+      selectedData:[],
+      start: 0,
+      end: 0
+    }
+    this.changeGraph = this.changeGraph.bind(this)
+    this.changeStart = this.changeStart.bind(this)
+    this.changeEnd = this.changeEnd.bind(this)
+  }
+
+  componentDidMount() {
+    //Listener on parsed data from Electron
+    ipcRenderer.on('history-loaded', (event, arg) => {
+      for (var key in arg) {
+        if (arg.hasOwnProperty(key)) {
+          const timestamp = Date.parse(arg[key].Time)/1000
+          const value = parseFloat(arg[key]["ch" + this.props.channel])
+          const parsedData = {x: timestamp, y: value}
+          const currentData = this.state.completeData
+          currentData.push(parsedData)
+          this.setState({completeData: currentData})
+        }
+     }
+
+    })
+  }
+
+  componentWillUnmount(){
+    
+}
+
+changeGraph(){
+  let currentGraph = this.state.completeData
+  let newGraph = []
+  for (var i = 0; i < currentGraph.length; i++) {
+      if(currentGraph[i].x >= this.state.start && currentGraph[i].x <= this.state.end){
+        newGraph.push({x: currentGraph[i].x, y: currentGraph[i].y})
+      }
+  }
+  this.setState({selectedData: newGraph})
+}
+
+changeStart(e){
+ 
+  this.setState({start: e.target.value})
+}
+
+changeEnd(e){
+  
+  this.setState({end: e.target.value})
+}
+
+  
+//What the actual component renders
+  render(){    
+      return(
+    <div>
+      <h1>{this.props.name} history</h1>
+      <select onChange={this.changeStart} value={this.state.start}>
+      <option>Start time</option>
+        {this.state.completeData.map((obj, key) => (
+        <option key={key} value={obj.x}>{new Date(obj.x*1000).toLocaleString()}</option>
+      ))}
+      </select>
+
+      <select onChange={this.changeEnd} value={this.state.end}>
+      <option>End time</option>
+        {this.state.completeData.map((obj, key) => (
+        <option key={key} value={obj.x}>{new Date(obj.x*1000).toLocaleString()}</option>
+      ))}
+      </select>
+      <button onClick={this.changeGraph}>Generate graph</button>
+        <XYPlot height={300} width={800} xType="time-utc" >
+        <HorizontalGridLines />
+        <XAxis/>
+        <YAxis/>
+        <LineSeries data={this.state.selectedData} animation />
+
+      </XYPlot>
+
+    </div>
+      );
+    
+    
+  }
+    
+}
+
 class RecordButton extends React.Component{
   constructor(props){
     super(props);
@@ -83,7 +174,7 @@ class RecordButton extends React.Component{
   }
 
   componentDidMount() {
-
+    ipcRenderer.send('get-history') 
   }
 
   componentWillUnmount(){
@@ -145,7 +236,6 @@ class PortConnect extends React.Component{
 }
 
 handleChange(event) {
-  console.log(event.target.value)
   ipcRenderer.send('clear-to-send', event.target.value) 
   }
   
@@ -155,7 +245,7 @@ handleChange(event) {
 
     return(
       <select onChange={this.handleChange} value={this.state.selectedPort}>
-      <option value="select">Select PORT</option>
+       <option>COM PORT</option>
         {this.state.portList.map((item, index) => (
         <option key={index} value={item}>{item}</option>
       ))}
@@ -166,6 +256,7 @@ handleChange(event) {
     
 }
 
+
 //The app frontend itself
   class App extends Component {
   
@@ -175,10 +266,13 @@ handleChange(event) {
       <div className="App">
       <RecordButton/>
       <PortConnect/>
-      <RTLineGraph name="Channel 1" channel={1} unit="mV"/>
-      <RTLineGraph name="Channel 2" channel={2} unit="mV"/>
-      <RTLineGraph name="Channel 3" channel={3} unit="mV"/>
-      <RTLineGraph name="Channel 4" channel={4}/>
+      <RTGraph name="Channel 1" channel={1} unit="mV"/>
+      <RTGraph name="Channel 2" channel={2} unit="mV"/>
+      <RTGraph name="Channel 3" channel={3} unit="mV"/>
+      <RTGraph name="Channel 4" channel={4}/>
+      <HistoryGraph name="Channel 1" channel={1}/>
+      <HistoryGraph name="Channel 2" channel={2}/>
+      <HistoryGraph name="Channel 3" channel={3}/>
       </div>
     );
   }

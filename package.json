@@ -9,15 +9,14 @@
   },
   "dependencies": {
     "csv": "^5.1.1",
+    "csvtojson": "^2.0.8",
     "json2csv": "^4.5.1",
     "moment": "^2.24.0",
-    "pondjs": "^1.0.1-0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-smoothie": "^0.10.2",
-    "react-timeseries-charts": "^0.15.5",
     "react-vis": "^1.11.6",
-    "serialport": "^7.1.4"
+    "serialport": "^7.1.5"
   },
   "main": "src/electron-starter.js",
   "scripts": {

@@ -12,7 +12,7 @@ let mainWindow;
 
 function createWindow() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({width: 800, height: 600});
+    mainWindow = new BrowserWindow({width: 800, height: 600, icon:"icon.png"});
 
     // and load the index.html of the app.
     mainWindow.loadURL('http://localhost:3000');
@@ -21,7 +21,7 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
 
     // Emitted when the window is closed.
-    mainWindow.on('close', function () {
+    mainWindow.on('closed', function () {
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
@@ -34,6 +34,8 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
+let recordingON = false
+
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
     // On OS X it is common for applications and their menu bar
@@ -41,9 +43,8 @@ app.on('window-all-closed', function () {
     if (process.platform !== 'darwin') {
         
         if(recordingON === true){
-            csv = saveRecord(csv)
+            csvRecord = saveRecord(csvRecord)
         }
-
         app.quit()
         
     }
@@ -57,10 +58,6 @@ app.on('activate', function () {
     }
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
-  
-
 //////////////////////////////////////// Parsing data from COM port ////////////////////////////////////////
 
 const Delimiter = require('@serialport/parser-delimiter')
@@ -70,8 +67,6 @@ const ipcMain = electron.ipcMain
 const SerialPort = require('serialport')
 
 ipcMain.on('list-ports', (event, arg) => {
-    let availablePorts = []
-
     SerialPort.list().then(
     ports => ports.forEach(function(port) {
     event.sender.send('ports-listed', port.comName)
@@ -80,17 +75,28 @@ ipcMain.on('list-ports', (event, arg) => {
 )
 })
    
-let csv = []
-let recordingON = null
+let csvRecord = []
 const refreshRate = 10
 
 ipcMain.on('recording', (event, arg) => {
   recordingON = arg
   if (arg === false){
-      csv = saveRecord(csv)
+      csvRecord = saveRecord(csvRecord)
   }
   })
 
+ipcMain.on('get-history', (event, arg) => {
+
+    const csvFilePath='record.csv'
+    const csv = require('csvtojson')
+    csv()
+    .fromFile(csvFilePath)
+    .then((jsonObj)=>{
+     event.sender.send('history-loaded', jsonObj)
+    })
+     
+    })
+    
 //Listener on React component mounting
 ipcMain.on('clear-to-send', (event, arg) => {
 
@@ -135,7 +141,7 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         'ch2': ch2, 
                         'ch3': ch3
                     }
-                    csv.push(csvSet)
+                    csvRecord.push(csvSet)
                 }
             }
             
@@ -199,7 +205,7 @@ function saveRecord(record){
         const json2csvParser = new Parser({ fields })
         const csvOut = json2csvParser.parse(record)
     
-        fs.writeFile(fileName, csvOut, function (err) {
+        fs.writeFile("record.csv", csvOut, function (err) {
         if (err) throw err;
 
         return []
