@@ -1,9 +1,14 @@
 {
-  "name": "ictm-test",
+  "name": "drill-app",
+  "productName": "Drill Analytics", 
   "version": "0.1.0",
+  "author": "Hoang Doan",
   "private": true,
+  "homepage": "./",
   "devDependencies": {
     "electron": "^1.4.14",
+    "electron-builder": "^20.40.2",
+    "electron-packager": "^13.1.1",
     "electron-rebuild": "^1.8.4",
     "react-scripts": "0.8.5"
   },
@@ -11,7 +16,6 @@
     "csv": "^5.1.1",
     "csvtojson": "^2.0.8",
     "json2csv": "^4.5.1",
-    "moment": "^2.24.0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-smoothie": "^0.10.2",
@@ -25,7 +29,24 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "electron": "electron .",
-    "install": "electron-rebuild"
+    "install": "electron-rebuild",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "cz.albertov.drillapp",
+    "extends": null,
+    "files": [
+      "./build/**/*",
+      "./src/electron-starter.js"
+    ],
+    "nsis": {
+      "perMachine": true
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   },
   "browserslist": [
     ">0.2%",

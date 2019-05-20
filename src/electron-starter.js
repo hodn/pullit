@@ -1,5 +1,6 @@
 const { Parser } = require('json2csv');
 const fs = require('fs');
+const path = require('path');
 const electron = require('electron');
 // Module to control application life.
 const app = electron.app;
@@ -12,13 +13,13 @@ let mainWindow;
 
 function createWindow() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({width: 800, height: 600, icon:"icon.png"});
+    mainWindow = new BrowserWindow({width: 800, height: 600});
 
     // and load the index.html of the app.
-    mainWindow.loadURL('http://localhost:3000');
-
+    mainWindow.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
+    
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
@@ -191,15 +192,6 @@ function aggregator(bufferArray){
 }
 
 function saveRecord(record){
-    const d = new Date();
-    const year = d.getFullYear().toString()
-    const month = d.getMonth().toString()
-    const day = d.getDate().toString()
-    const hour = d.getHours().toString()
-    const minute = d.getMinutes().toString()
-    const second = d.getSeconds().toString()
-    
-    const fileName = year + month + day + '_' + hour + minute + 'S' + second + '.csv'
     
     const fields = ['Time', 'ch1', 'ch2', 'ch3']
         const json2csvParser = new Parser({ fields })
