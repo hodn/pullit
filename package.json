@@ -1,6 +1,6 @@
 {
   "name": "drill-app",
-  "productName": "Drill Analytics", 
+  "productName": "Drill Analytics",
   "version": "0.1.0",
   "author": "Hoang Doan",
   "private": true,
@@ -15,6 +15,7 @@
   "dependencies": {
     "csv": "^5.1.1",
     "csvtojson": "^2.0.8",
+    "electron-reload": "^1.4.0",
     "json2csv": "^4.5.1",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",

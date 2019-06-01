@@ -1,7 +1,10 @@
 const { Parser } = require('json2csv');
 const fs = require('fs');
 const path = require('path');
-const electron = require('electron');
+const electron = require('electron-reload')(__dirname, {
+    // Note that the path to electron may vary according to the main file
+    electron: require(`${__dirname}/node_modules/electron`)
+});
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
@@ -16,10 +19,11 @@ function createWindow() {
     mainWindow = new BrowserWindow({width: 800, height: 600});
 
     // and load the index.html of the app.
-    mainWindow.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
+    //mainWindow.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
+    mainWindow.loadURL('http://localhost:3000');
     
     // Open the DevTools.
-    //mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
@@ -43,8 +47,10 @@ app.on('window-all-closed', function () {
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
         
+        //If the windows is closed while recording, save the CSV record and clear the array
         if(recordingON === true){
-            csvRecord = saveRecord(csvRecord)
+            saveRecord(csvRecord)
+            csvRecord = []
         }
         app.quit()
         
@@ -62,11 +68,13 @@ app.on('activate', function () {
 //////////////////////////////////////// Parsing data from COM port ////////////////////////////////////////
 
 const Delimiter = require('@serialport/parser-delimiter')
+//Module for IPC with Renderer
 const ipcMain = electron.ipcMain
 
 //Establishing connection with COM PORT
 const SerialPort = require('serialport')
 
+//List available ports on event from Renderer
 ipcMain.on('list-ports', (event, arg) => {
     SerialPort.list().then(
     ports => ports.forEach(function(port) {
@@ -76,17 +84,22 @@ ipcMain.on('list-ports', (event, arg) => {
 )
 })
    
+//Data to be saved into the CSV
 let csvRecord = []
+//Buffer size
 const refreshRate = 10
 
+//Change the state of recording boolean. If switched from true to false, save the data to CSV and clear the array
 ipcMain.on('recording', (event, arg) => {
   recordingON = arg
   if (arg === false){
-      csvRecord = saveRecord(csvRecord)
+      saveRecord(csvRecord)
+      csvRecord = []
   }
   })
 
-ipcMain.on('get-history', (event, arg) => {
+//Get the history data from CSV file on event from Renderer
+pcMain.on('get-history', (event, arg) => {
 
     const csvFilePath='record.csv'
     const csv = require('csvtojson')
@@ -98,32 +111,39 @@ ipcMain.on('get-history', (event, arg) => {
      
     })
     
-//Listener on React component mounting
+//On clear to send - start parsing data
 ipcMain.on('clear-to-send', (event, arg) => {
 
+    //Port init and settings
     let port = new SerialPort(arg, {
         baudRate: 115200
       })
    
+    //Pipe init and delimiter settings  
     const parser = port.pipe(new Delimiter({ delimiter: [0x00] }))
     
+    //Init of buffers
     const ch1Buffer = []
     const ch2Buffer = []
     const ch3Buffer = []
     const ch4Buffer = []
+   //Aggregation and real time data packet for Renderer
     let aggSet = []
     let dataSet = []
 
     // Switches the port into "flowing mode"
         parser.on('data', function(data) {
             
+            //Raw packets are parsed into array after decoding from EZ24 format
             const channelData = arrayParserEZ24(Uint8Array.from(data))
 
+            //Feeding buffer with parsed data
             ch1Buffer.push(channelData[0])
             ch2Buffer.push(channelData[1])
             ch3Buffer.push(channelData[2])
             ch4Buffer.push(channelData[3])
 
+            //Aggregation from the buffer and buffer release
             if (ch4Buffer.length > refreshRate) {
                 const ch1 = aggregator(ch1Buffer)
                 const ch2 = aggregator(ch2Buffer)
@@ -135,6 +155,7 @@ ipcMain.on('clear-to-send', (event, arg) => {
                 ch3Buffer.splice(0, refreshRate)
                 ch4Buffer.splice(0, refreshRate)
 
+                //If recording is ON - append the agg dataset to CSV array
                 if(recordingON === true){
                     const csvSet = {
                         'Time': new Date(), 
@@ -146,14 +167,16 @@ ipcMain.on('clear-to-send', (event, arg) => {
                 }
             }
             
+            //Dataset for real-time graph in Renderer
             dataSet = [Date.now(), channelData[0], channelData[1], channelData[2], channelData[3]]
+            //Sending aggregation and real time data to Renderer
             event.sender.send('data-parsed', [dataSet, aggSet])
             
   });
 
   })
 
- 
+// Parsing 4 bytes from each EZ24 packet and converting to actual value
 function parserEZ24([a, b, c, d]){
     
     let x = a>>1 | ((d & 2) << 6)
@@ -162,7 +185,7 @@ function parserEZ24([a, b, c, d]){
 
     return (z << 16) | (y << 8) | x;
 }
-
+// Dividing the original packet into EZ24 packets
 function arrayParserEZ24(dataArray){
 
     let channel_1 = parserEZ24(dataArray.slice(0,4));
@@ -172,7 +195,7 @@ function arrayParserEZ24(dataArray){
   
     return [unitConverter(channel_1), unitConverter(channel_2), unitConverter(channel_3), orderCheck]
 }
-
+// Converting function for AD 
 function unitConverter(number){
 
     const unit = 8388608/3000
@@ -180,7 +203,7 @@ function unitConverter(number){
     
     return result
 }
-
+// Calculation of average from buffer
 function aggregator(bufferArray){
     let total = 0;
     for(var i = 0; i < bufferArray.length; i++) {
@@ -190,7 +213,7 @@ function aggregator(bufferArray){
     return avg.toFixed(2)
 
 }
-
+// Saving the record
 function saveRecord(record){
     
     const fields = ['Time', 'ch1', 'ch2', 'ch3']
@@ -199,7 +222,5 @@ function saveRecord(record){
     
         fs.writeFile("record.csv", csvOut, function (err) {
         if (err) throw err;
-
-        return []
 });
 }
