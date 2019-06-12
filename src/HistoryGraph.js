@@ -25,9 +25,13 @@ export class HistoryGraph extends React.Component{
             const timestamp = Date.parse(arg[key].Time)/1000
             const value = parseFloat(arg[key]["ch" + this.props.channel])
             const parsedData = {x: timestamp, y: value}
-            const currentData = this.state.completeData
-            currentData.push(parsedData)
-            this.setState({completeData: currentData})
+            this.setState(state => {
+              const completeData = [...state.completeData, parsedData];
+        
+              return {
+                completeData
+              };
+            })
           }
        }
   
@@ -39,14 +43,20 @@ export class HistoryGraph extends React.Component{
   }
   
   changeGraph(){
-    let currentGraph = this.state.completeData
     let newGraph = []
-    for (var i = 0; i < currentGraph.length; i++) {
-        if(currentGraph[i].x >= this.state.start && currentGraph[i].x <= this.state.end){
-          newGraph.push({x: currentGraph[i].x, y: currentGraph[i].y})
+  
+    this.setState(state => {
+      for (var i = 0; i < state.completeData.length; i++) {
+        if(state.completeData[i].x >= state.start && state.completeData[i].x <= state.end){
+          newGraph.push({x: state.completeData[i].x, y: state.completeData[i].y})
         }
     }
-    this.setState({selectedData: newGraph})
+      const selectedData = newGraph;
+
+      return {
+        selectedData
+      };
+    })
   }
   
   changeStart(e){

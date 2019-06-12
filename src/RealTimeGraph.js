@@ -1,29 +1,26 @@
 const { ipcRenderer } = window.require('electron');
 import React from 'react';
-import SmoothieComponent, { TimeSeries } from 'react-smoothie';
+import {XAxis, YAxis, LineSeries, FlexibleWidthXYPlot} from 'react-vis';
 
 export class RealTimeGraph extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      events: new TimeSeries({}),
-      value: 0
+      data: []
     }
 
   }
 
   componentDidMount() {
-    //Listener on parsed data from Electron
+    // Listener on parsed data from Electron
     ipcRenderer.on('data-parsed', (event, arg) => {
+      console.log(arg)
+      const newData = {x: arg[0], y: arg[1][this.props.channel-1]}
       
-      const time = arg[0][0]
-      const measurement = arg[0][this.props.channel]
-      const newEvents = this.state.events
-      newEvents.append(time, measurement)
-
-      const aggValue = arg[1][this.props.channel-1]
-
-      this.setState({events: newEvents, value: aggValue})
+      this.setState((state, props) => ({
+        data: [...state.data, newData]
+      }));
+     
       
     })
 
@@ -33,29 +30,19 @@ export class RealTimeGraph extends React.Component{
     
 }
   
-//What the actual component renders
+// What the actual component renders
   render(){    
       return(
     
         <div>
-          <h2>{this.props.name}</h2>
-          <h1>{this.state.value} {this.props.unit}</h1>
-          <SmoothieComponent
-              responsive
-              interpolation='linear'
-              scaleSmoothing={0.424}
-              millisPerPixel={16}
-              grid={{fillStyle:'rgba(255,255,255,0.92)',strokeStyle:'rgba(0,0,0,0.16)',sharpLines:true,borderVisible:true}}
-              labels={{fillStyle:'#000000',fontSize:13,precision:0}}
-              streamDelay={100}
-              series={[
-                {
-                  data: this.state.events,
-                  lineWidth:3.9,
-                  strokeStyle:'#000080'
-                }
-              ]}
-      />
+          <FlexibleWidthXYPlot height={300} xType="time" yDomain={[-1000,1500]}>
+         
+          <LineSeries data={this.state.data} animation />
+          <XAxis/>
+          <YAxis/>
+    
+          </FlexibleWidthXYPlot>
+          
        
         </div>
       

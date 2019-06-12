@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import '../node_modules/react-vis/dist/style.css';
 import {RealTimeGraph} from './RealTimeGraph.js';
 import {HistoryGraph} from './HistoryGraph.js';
 import {PortMenu} from './PortMenu.js';
