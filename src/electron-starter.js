@@ -127,39 +127,53 @@ ipcMain.on('clear-to-send', (event, arg) => {
     const ch2Buffer = []
     const ch3Buffer = []
     const ch4Buffer = []
-   
-    // Aggregation data packet for Renderer
-    let aggSet = []
     
     // Buffer size
     const refreshRate = 25
     
-    // Drilling tools data
+    // Init drill tools
     let lenght_1 = 0
     let lenght_2 = 0
     let lenght_3 = 0
     let lenght_4 = 0
+    let totalLenght = 0
     let crown = 0
 
+    ipcMain.on('tools-updated', (event, arg) => {
+        lenght_1 = arg.l1
+        lenght_2 = arg.l2
+        lenght_3 = arg.l3
+        lenght_4 = arg.l4
+        totalLenght = arg.total
+        crown = arg.c
+    
+    })
 
     // Switches the port into "flowing mode"
-        parser.on('data', function(data) {
+    parser.on('data', function(data) {
             
-            //Raw packets are parsed into array after decoding from EZ24 format
+            // Raw packets are parsed into array after decoding from EZ24 format
             const channelData = arrayParserEZ24(Uint8Array.from(data))
 
-            //Feeding buffer with parsed data
+            // Feeding buffer with parsed data
             ch1Buffer.push(channelData[0])
             ch2Buffer.push(channelData[1])
             ch3Buffer.push(channelData[2])
             ch4Buffer.push(channelData[3])
 
-            //Aggregation from the buffer and buffer release
+            // Aggregation from the buffer and buffer release
             if (ch4Buffer.length > refreshRate) {
                 const ch1 = aggregator(ch1Buffer)
                 const ch2 = aggregator(ch2Buffer)
                 const ch3 = aggregator(ch3Buffer)
-                aggSet = [ch1, ch2, ch3]
+                
+                // Aggregation data packet for Renderer
+                const aggSet = {
+                    'time': Date.now(),
+                    'ch1': ch1, 
+                    'ch2': ch2, 
+                    'ch3': ch3,
+                }
 
                 ch1Buffer.splice(0, refreshRate)
                 ch2Buffer.splice(0, refreshRate)
@@ -167,7 +181,7 @@ ipcMain.on('clear-to-send', (event, arg) => {
                 ch4Buffer.splice(0, refreshRate)
                 
                 //Sending aggregation data to Renderer
-                event.sender.send('data-parsed', [Date.now(), aggSet])
+                event.sender.send('data-parsed', aggSet)
                 
                 //If recording is ON - append the data to CSV array
                 if(recordingON === true){
@@ -180,6 +194,7 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         'l2': lenght_2, 
                         'l3': lenght_3,
                         'l4': lenght_4,
+                        'total': totalLenght,
                         'c': crown,
                         'note': ""
                     }
@@ -214,8 +229,8 @@ function arrayParserEZ24(dataArray){
 // Converting function for AD 
 function unitConverter(number){
 
-    const unit = 8388608/3000 // AD value divided by mV range (-3 to 3V)
-    let result = (number/unit) - 3000
+    const unit = 8388608 / 3 // AD value divided by V range (-3 to 3V)
+    let result = (number/unit) - 3
     
     return result
 }
@@ -231,7 +246,6 @@ function aggregator(bufferArray){
 }
 // Saving the record
 function saveRecord(record){
-    console.log(csvFields);
     const fields = csvFields
         const json2csvParser = new Parser({ fields })
         const csvOut = json2csvParser.parse(record)

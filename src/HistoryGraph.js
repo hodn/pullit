@@ -26,8 +26,7 @@ export class HistoryGraph extends React.Component{
             const value = parseFloat(arg[key]["ch" + this.props.channel])
             const parsedData = {x: timestamp, y: value}
             this.setState(state => {
-              const completeData = [...state.completeData, parsedData];
-        
+              const completeData = [...state.completeData, parsedData]        
               return {
                 completeData
               };
