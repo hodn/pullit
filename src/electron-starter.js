@@ -138,6 +138,7 @@ ipcMain.on('clear-to-send', (event, arg) => {
     let lenght_4 = 0
     let totalLenght = 0
     let crown = 0
+    let parameterChanged = 0
 
     ipcMain.on('tools-updated', (event, arg) => {
         lenght_1 = arg.l1
@@ -146,7 +147,7 @@ ipcMain.on('clear-to-send', (event, arg) => {
         lenght_4 = arg.l4
         totalLenght = arg.total
         crown = arg.c
-    
+        parameterChanged = 1
     })
 
     // Switches the port into "flowing mode"
@@ -196,10 +197,11 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         'l4': lenght_4,
                         'total': totalLenght,
                         'c': crown,
-                        'note': ""
+                        'changed': parameterChanged
                     }
                     csvFields = Object.keys(csvSet)
                     csvRecord.push(csvSet)
+                    parameterChanged = 0
                 }
         }
       
@@ -241,7 +243,7 @@ function aggregator(bufferArray){
     total += bufferArray[i];
 }
     let avg = total / bufferArray.length;
-    return avg.toFixed(2)
+    return parseFloat(avg.toFixed(2))
 
 }
 // Saving the record

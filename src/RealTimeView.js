@@ -5,6 +5,7 @@ import { RecordButton } from './RecordButton.js';
 import { RealTimeGraph } from './RealTimeGraph.js';
 import { RealTimeBar } from './RealTimeBar.js';
 import { RealTimeControl } from './RealTimeControl.js';
+import { HistoryGraph } from './HistoryGraph.js';
 
 export class RealTimeView extends React.Component{
   constructor(props){
@@ -27,7 +28,7 @@ export class RealTimeView extends React.Component{
   }
 
   componentDidMount() {
-    
+    ipcRenderer.send('get-history') // Move this to History View later
     this.setState({
       toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: 0},
       barData: {torque: 0, force: 0, revs: 0}
@@ -89,12 +90,14 @@ export class RealTimeView extends React.Component{
 
   updateCSV(){
     ipcRenderer.send("tools-updated", this.state.toolsData)
+    if(this.state.data_ch1 === [] && this.state.data_ch2 === []){
     const last_ch1 = this.state.data_ch1[this.state.data_ch1.length-1]
     const last_ch2 = this.state.data_ch2[this.state.data_ch2.length-1]
     this.setState(state => ({
       events_ch1: [...state.events_ch1, last_ch1],
       events_ch2: [...state.events_ch2, last_ch2]
     }))
+  }
 }
   crownHandler(id){
     const c1 = 173
@@ -136,6 +139,8 @@ export class RealTimeView extends React.Component{
             <RealTimeGraph data={this.state.data_ch1} eventData={this.state.events_ch1}/>
             <RealTimeGraph data={this.state.data_ch2} eventData={this.state.events_ch2} />
             <RealTimeBar drillData={this.state.barData} tools={this.state.toolsData}/>
+            <HistoryGraph channel="1"/>
+            <HistoryGraph channel="2"/>
         </div>
       
       );

@@ -11,7 +11,7 @@ export class RecordButton extends React.Component{
     }
   
     componentDidMount() {
-      ipcRenderer.send('get-history') 
+      
     }
   
     componentWillUnmount(){

@@ -1,6 +1,6 @@
 const { ipcRenderer } = window.require('electron');
 import React from 'react';
-import {XYPlot, XAxis, YAxis, LineSeries, HorizontalGridLines} from 'react-vis';
+import {XYPlot, XAxis, YAxis, LineSeries, HorizontalGridLines, MarkSeries} from 'react-vis';
 
 
 export class HistoryGraph extends React.Component{
@@ -8,7 +8,9 @@ export class HistoryGraph extends React.Component{
       super(props);
       this.state = {
         completeData:[],
+        completeEvents: [],
         selectedData:[],
+        selectedEvents:[],
         start: 0,
         end: 0
       }
@@ -25,6 +27,9 @@ export class HistoryGraph extends React.Component{
             const timestamp = Date.parse(arg[key].Time)/1000
             const value = parseFloat(arg[key]["ch" + this.props.channel])
             const parsedData = {x: timestamp, y: value}
+            if(arg[key].changed === "1"){
+              this.setState(state => ({completeEvents: [...state.completeEvents, parsedData]}))
+            }
             this.setState(state => {
               const completeData = [...state.completeData, parsedData]        
               return {
@@ -43,7 +48,7 @@ export class HistoryGraph extends React.Component{
   
   changeGraph(){
     let newGraph = []
-  
+    let newEvents = []
     this.setState(state => {
       for (var i = 0; i < state.completeData.length; i++) {
         if(state.completeData[i].x >= state.start && state.completeData[i].x <= state.end){
@@ -52,8 +57,16 @@ export class HistoryGraph extends React.Component{
     }
       const selectedData = newGraph;
 
+      for (var m = 0; m < state.completeEvents.length; m++) {
+        if(state.completeEvents[m].x >= state.start && state.completeEvents[m].x <= state.end){
+          newEvents.push({x: state.completeEvents[m].x, y: state.completeEvents[m].y})
+        }
+    }
+      const selectedEvents = newEvents;
+
       return {
-        selectedData
+        selectedData,
+        selectedEvents
       };
     })
   }
@@ -73,7 +86,7 @@ export class HistoryGraph extends React.Component{
     render(){    
         return(
       <div>
-        <h1>{this.props.name} history</h1>
+        <h1>Channel {this.props.channel} history</h1>
         <select onChange={this.changeStart} value={this.state.start}>
         <option>Start time</option>
           {this.state.completeData.map((obj, key) => (
@@ -93,7 +106,7 @@ export class HistoryGraph extends React.Component{
           <XAxis/>
           <YAxis/>
           <LineSeries data={this.state.selectedData} animation />
-  
+          <MarkSeries data={this.state.selectedEvents} animation/>
         </XYPlot>
   
       </div>
