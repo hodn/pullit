@@ -20,6 +20,7 @@ export class HistoryGraph extends React.Component{
     }
   
     componentDidMount() {
+      ipcRenderer.send('get-history') // Move this to History View later
       //Listener on parsed data from Electron
       ipcRenderer.on('history-loaded', (event, arg) => {
         for (var key in arg) {
@@ -27,7 +28,7 @@ export class HistoryGraph extends React.Component{
             const timestamp = Date.parse(arg[key].Time)/1000
             const value = parseFloat(arg[key]["ch" + this.props.channel])
             const parsedData = {x: timestamp, y: value}
-            if(arg[key].changed === "1"){
+            if(arg[key].change === "1"){
               this.setState(state => ({completeEvents: [...state.completeEvents, parsedData]}))
             }
             this.setState(state => {

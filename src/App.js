@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import '../node_modules/react-vis/dist/style.css';
 import { RealTimeView } from './RealTimeView.js';
+import { HistoryGraph } from './HistoryGraph.js'
 
   class App extends Component {
   
@@ -8,7 +9,9 @@ import { RealTimeView } from './RealTimeView.js';
     
     return (
       <div>
-      <RealTimeView/>
+      {<RealTimeView/>}
+      <HistoryGraph channel="1"/>
+      <HistoryGraph channel="2"/>
       </div>
     );
   }

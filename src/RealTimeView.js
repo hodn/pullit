@@ -5,7 +5,6 @@ import { RecordButton } from './RecordButton.js';
 import { RealTimeGraph } from './RealTimeGraph.js';
 import { RealTimeBar } from './RealTimeBar.js';
 import { RealTimeControl } from './RealTimeControl.js';
-import { HistoryGraph } from './HistoryGraph.js';
 
 export class RealTimeView extends React.Component{
   constructor(props){
@@ -28,7 +27,6 @@ export class RealTimeView extends React.Component{
   }
 
   componentDidMount() {
-    ipcRenderer.send('get-history') // Move this to History View later
     this.setState({
       toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: 0},
       barData: {torque: 0, force: 0, revs: 0}
@@ -37,16 +35,46 @@ export class RealTimeView extends React.Component{
     // Listener on parsed data from Electron
     ipcRenderer.on('data-parsed', (event, arg) => { 
      
-        const data1 = {x: arg.time, y: arg.ch1}
-        const data2 = {x: arg.time, y: arg.ch2} 
-        const data3 = {x: arg.time, y: arg.ch3} 
-        
+        const packet_ch1 = {x: arg.time, y: arg.ch1}
+        const packet_ch2 = {x: arg.time, y: arg.ch2} 
+        const packet_ch3 = {x: arg.time, y: arg.ch3} 
+  
+        const timeWindow = 10
+
+        if (this.state.data_ch1.length <= timeWindow){
         this.setState((state) => ({
-            data_ch1: [...state.data_ch1, data1],
-            data_ch2: [...state.data_ch2, data2],
-            data_ch3: [...state.data_ch3, data3],
-            barData: {torque: data1.y, force: data2.y, revs: data3.y}
-        }));
+            data_ch1: [...state.data_ch1, packet_ch1],
+            data_ch2: [...state.data_ch2, packet_ch2],
+            data_ch3: [...state.data_ch3, packet_ch3],
+            barData: {torque: packet_ch1.y, force: packet_ch2.y, revs: packet_ch3.y}
+        }))} 
+        else {
+          const d_ch1 = this.state.data_ch1
+          const d_ch2 = this.state.data_ch2
+          const d_ch3 = this.state.data_ch3
+          const e_ch1 = this.state.events_ch1
+          const e_ch2 = this.state.events_ch2
+
+          d_ch1.splice(0,1)
+          d_ch2.splice(0,1)
+          d_ch3.splice(0,1)
+
+          if(e_ch1.length !== 0 && e_ch1[0].x <= d_ch1[0].x){
+            e_ch1.splice(0,1)
+            e_ch2.splice(0,1)
+          }
+
+          console.log(e_ch1);
+
+          this.setState({
+            data_ch1: d_ch1,
+            data_ch2: d_ch2,
+            data_ch3: d_ch3,
+            events_ch1: e_ch1,
+            events_ch2: e_ch2,
+            barData: {torque: packet_ch1.y, force: packet_ch2.y, revs: packet_ch3.y}
+          });
+        }
      
       
     })
@@ -82,15 +110,16 @@ export class RealTimeView extends React.Component{
 }
 
   lenghtReset(){
+    
     this.setState((state) => ({
       toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: state.toolsData.c},
-    }), () => {this.updateCSV()})
+    }), () => {this.updateCSV('reset')})
   
 }
 
-  updateCSV(){
+  updateCSV(event){
     ipcRenderer.send("tools-updated", this.state.toolsData)
-    if(this.state.data_ch1 === [] && this.state.data_ch2 === []){
+    if(this.state.data_ch1.length !== 0 && event !=='reset'){
     const last_ch1 = this.state.data_ch1[this.state.data_ch1.length-1]
     const last_ch2 = this.state.data_ch2[this.state.data_ch2.length-1]
     this.setState(state => ({
@@ -139,8 +168,6 @@ export class RealTimeView extends React.Component{
             <RealTimeGraph data={this.state.data_ch1} eventData={this.state.events_ch1}/>
             <RealTimeGraph data={this.state.data_ch2} eventData={this.state.events_ch2} />
             <RealTimeBar drillData={this.state.barData} tools={this.state.toolsData}/>
-            <HistoryGraph channel="1"/>
-            <HistoryGraph channel="2"/>
         </div>
       
       );
