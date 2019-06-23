@@ -29,7 +29,7 @@ export class RealTimeGraph extends React.Component{
           <MarkSeries data={this.props.eventData}/>
           <XAxis/>
           <YAxis/>
-    
+        
           </FlexibleWidthXYPlot>
           
        

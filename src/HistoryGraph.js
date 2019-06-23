@@ -29,7 +29,7 @@ export class HistoryGraph extends React.Component{
             <HorizontalGridLines />
             <VerticalGridLines/>
             <XAxis />
-            <YAxis />
+            <YAxis/>
             <LineSeries data={this.props.data} animation />
             <MarkSeries data={this.props.events} animation/>
           </XYPlot>

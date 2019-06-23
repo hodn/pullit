@@ -8,7 +8,7 @@ export class PortMenu extends React.Component{
       super(props);
       this.state = {
         portList: [],
-        selectedPort: ''
+        selectedPort:"",
       }
       this.handleChange = this.handleChange.bind(this);
       this.handleClick = this.handleClick.bind(this);
@@ -30,13 +30,14 @@ export class PortMenu extends React.Component{
   }
   
   handleChange(event) {
-    
-    this.setState({selectedPort: event.target.value})
+    this.setState({ selectedPort: event.target.value});
+    ipcRenderer.send('change-com', event.target.value)
+    ipcRenderer.send('clear-to-send')  
   }
 
   handleClick() {
     
-    ipcRenderer.send('clear-to-send', this.state.selectedPort) 
+    ipcRenderer.send('change-dir') 
   }
     
   //What the actual component renders
@@ -53,7 +54,7 @@ export class PortMenu extends React.Component{
           </Select>
           <FormHelperText>Select COM PORT</FormHelperText>
         </FormControl>
-        <Button variant="contained" color="primary" onClick={this.handleClick}>Connect</Button>
+        <Button variant="contained" color="primary" onClick={this.handleClick}>Default directory</Button>
         </div>
       )
     

@@ -3,7 +3,7 @@ const fs = require('fs');
 // Module to include electron
 const electron = require('electron');
 // Module for file paths
-require('path');
+const path = require('path');
 // Module for hot reload 
 require('electron-reload')(__dirname, { electron: require('${__dirname}/../../node_modules/electron') })
 // Module to control application life.
@@ -17,15 +17,15 @@ let mainWindow;
 
 function createWindow() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({width: 800, height: 600});
-
+    mainWindow = new BrowserWindow();
+    mainWindow.maximize();
     // and load the index.html of the app.
     //mainWindow.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
     mainWindow.loadURL('http://localhost:3000');
     
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
-
+    
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
         // Dereference the window object, usually you would store windows
@@ -39,8 +39,6 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
-
-let recordingON = false
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -77,12 +75,67 @@ process.on('uncaughtException', error => {
 
 //////////////////////////////////////// Parsing data from COM port ////////////////////////////////////////
 
+// Delimiter init for data packets
 const Delimiter = require('@serialport/parser-delimiter')
 // Module for IPC with Renderer
 const ipcMain = electron.ipcMain
-
-// Establishing connection with COM PORT
+// SerialPort init
 const SerialPort = require('serialport')
+
+// State of recording
+let recordingON = false
+
+// Data to be saved into the CSV
+let csvRecord = []
+// Path to read CSV file
+let csvFilePath = "" 
+// Data parsed from CSV file
+let csvHistory = null
+
+// Default settings - CSV saving directory and COM PORT
+let defaultDir = ""
+let defaultCOM = ""
+
+// Loads user settings file if exists or creates new one with default values
+if (fs.existsSync("user-settings.txt")){
+    
+    fs.readFile("user-settings.txt", {encoding: 'utf-8'}, function(err,data){
+        if (!err) {
+            const set = data.split("xx")
+            defaultDir = set[1]
+            defaultCOM = set[0]
+            saveSettings(defaultCOM, defaultDir)
+        } else {
+            electron.dialog.showErrorBox(err.message, "App has encountered an error - " + err.message)
+        }
+    })
+    
+}
+else {
+    defaultDir = app.getPath('documents')
+    defaultCOM = "COM6"
+    saveSettings(defaultCOM, defaultDir)
+}
+
+ipcMain.on('change-dir', (event, arg) => {
+    
+    electron.dialog.showOpenDialog({
+        properties: ["openDirectory"],
+    }, function (files) {
+        if (files !== undefined) {
+            defaultDir = files.toString()
+            saveSettings(defaultCOM, defaultDir)
+        }
+
+    })
+
+})
+
+ipcMain.on('change-com', (event, arg) => {
+
+    defaultCOM = arg
+    saveSettings(defaultCOM, defaultDir)
+})
 
 // List available ports on event from Renderer
 ipcMain.on('list-ports', (event, arg) => {
@@ -93,12 +146,6 @@ ipcMain.on('list-ports', (event, arg) => {
     err => console.error(err),
 )
 })
-   
-// Data to be saved into the CSV
-let csvRecord = []
-let csvFields = []
-let csvFilePath = "" 
-let csvHistory = null
 
 // Change the state of recording boolean. If switched from true to false, save the data to CSV and clear the array
 ipcMain.on('recording', (event, arg) => {
@@ -132,12 +179,11 @@ ipcMain.on('load-csv', (event, arg) => {
         event.sender.send('csv-loaded', timeRange)
     })
         }
-    })
-    
-    
+    })  
      
-    })
+})
 
+// CSV file check and loading file details    
 ipcMain.on('get-csv-data', (event, arg) => {
     
     if(arg.start === null && arg.end === null){
@@ -158,7 +204,7 @@ ipcMain.on('get-csv-data', (event, arg) => {
 ipcMain.on('clear-to-send', (event, arg) => {
 
     // Port init (user selection in arg) and settings
-    let port = new SerialPort(arg, {
+    let port = new SerialPort(defaultCOM, {
         baudRate: 115200
       })
    
@@ -290,6 +336,7 @@ function aggregator(bufferArray){
 
 }
 
+// Filtering the CSV data according to time range
 function filterCSV(file, start, end){
     const data_ch1 = []
     const data_ch2 = []
@@ -320,11 +367,29 @@ function filterCSV(file, start, end){
 
 // Saving the record
 function saveRecord(record){
+    
+    const fileDate = new Date().toISOString()
+    const filename = fileDate.split("T")[0] + "_" + new Date().getHours() + new Date().getMinutes() + new Date().getSeconds()
+    let savePath = path.join(defaultDir, filename + ".csv")
+
     const fields = (Object.keys(record[0]))
         const json2csvParser = new Parser({ fields })
         const csvOut = json2csvParser.parse(record)
+        
+        fs.writeFile(savePath, csvOut, function (err) {
+            
+            if (err) throw err; 
+        
+        })
+       
+
+}
+
+function saveSettings(com, dir){
+    const settings = com.toString() + "xx" + dir.toString()
+    fs.writeFile("user-settings.txt", settings, function (err) {
+            
+        if (err) throw err; 
     
-        fs.writeFile("record.csv", csvOut, function (err) {
-        if (err) throw err;
-});
+    })
 }
