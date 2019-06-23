@@ -1,12 +1,14 @@
 const { ipcRenderer } = window.require('electron');
+import Select from '@material-ui/core/Select';
 import React from 'react';
+import { Button, MenuItem, FormControl, InputLabel, FormHelperText } from '@material-ui/core';
 
 export class PortMenu extends React.Component{
     constructor(props){
       super(props);
       this.state = {
         portList: [],
-        selectedPort: null
+        selectedPort: ''
       }
       this.handleChange = this.handleChange.bind(this);
       this.handleClick = this.handleClick.bind(this);
@@ -42,13 +44,16 @@ export class PortMenu extends React.Component{
   
       return(
         <div>
-        <select onChange={this.handleChange}>
-         <option>COM PORT</option>
-          {this.state.portList.map((item, index) => (
-          <option key={index} value={item}>{item}</option>
-        ))}
-        </select>
-        <button onClick={this.handleClick}>Connect</button>
+        <FormControl>
+          <Select onChange={this.handleChange} value={this.state.selectedPort}>
+          <InputLabel>COM</InputLabel>
+              {this.state.portList.map((item, index) => (
+                <MenuItem key={index} value={item}>{item}</MenuItem>
+              ))}
+          </Select>
+          <FormHelperText>Select COM PORT</FormHelperText>
+        </FormControl>
+        <Button variant="contained" color="primary" onClick={this.handleClick}>Connect</Button>
         </div>
       )
     

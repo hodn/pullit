@@ -97,6 +97,8 @@ ipcMain.on('list-ports', (event, arg) => {
 // Data to be saved into the CSV
 let csvRecord = []
 let csvFields = []
+let csvFilePath = "" 
+let csvHistory = null
 
 // Change the state of recording boolean. If switched from true to false, save the data to CSV and clear the array
 ipcMain.on('recording', (event, arg) => {
@@ -108,18 +110,49 @@ ipcMain.on('recording', (event, arg) => {
   })
 
 // Get the history data from CSV file on event from Renderer
-ipcMain.on('get-history', (event, arg) => {
-
-    const csvFilePath='record.csv'
+ipcMain.on('load-csv', (event, arg) => {
+    
     const csv = require('csvtojson')
-    csv()
-    .fromFile(csvFilePath)
-    .then((jsonObj)=>{
-     //event.sender.send('history-loaded', jsonObj)
-     console.log(jsonObj[0].Time + jsonObj[jsonObj.length-1].Time)
+    
+    electron.dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters:[
+            { name: 'CSV logs', extensions: ['csv'] }],
+    }, function (files) {
+        if (files !== undefined) {
+            csvFilePath = files.toString()
+            csv()
+            .fromFile(csvFilePath)
+            .then((jsonObj)=>{
+            csvHistory = jsonObj
+            const timeRange = {
+                'start': jsonObj[0].Time,
+                'end': jsonObj[jsonObj.length-1].Time 
+        }
+        event.sender.send('csv-loaded', timeRange)
     })
+        }
+    })
+    
+    
      
     })
+
+ipcMain.on('get-csv-data', (event, arg) => {
+    
+    if(arg.start === null && arg.end === null){
+        
+        electron.dialog.showErrorBox("No file selected",  "Please, load the CSV log file.")
+    }
+    else if(arg.start > arg.end) {
+        
+        electron.dialog.showErrorBox("Incorrect time window",  "Please, check the time selection.")
+    }
+    else{
+        const packet = filterCSV(csvHistory, arg.start, arg.end)
+        event.sender.send("csv-filtered", packet)
+    }
+})
     
 // On clear to send - start parsing data
 ipcMain.on('clear-to-send', (event, arg) => {
@@ -197,7 +230,7 @@ ipcMain.on('clear-to-send', (event, arg) => {
                 //If recording is ON - append the data to CSV array
                 if(recordingON === true){
                     const csvSet = {
-                        'Time': new Date(), 
+                        'Time': new Date().toUTCString(), 
                         'ch1': ch1, 
                         'ch2': ch2, 
                         'ch3': ch3,
@@ -209,7 +242,7 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         'c': crown,
                         'change': toolChanged
                     }
-                    csvFields = Object.keys(csvSet)
+                    
                     csvRecord.push(csvSet)
                     toolChanged = 0
                 }
@@ -256,9 +289,38 @@ function aggregator(bufferArray){
     return parseFloat(avg.toFixed(2))
 
 }
+
+function filterCSV(file, start, end){
+    const data_ch1 = []
+    const data_ch2 = []
+    const data_ch3 = []
+    const events_ch1 = []
+    const events_ch2 = []
+    const events_ch3 = []
+    
+    for (var key in file) {
+        if (file.hasOwnProperty(key)) {
+          const timestamp = Date.parse(file[key].Time)
+          if(timestamp >= start && timestamp <= end){
+              data_ch1.push({x: timestamp, y: file[key].ch1})
+              data_ch2.push({x: timestamp, y: file[key].ch2})
+              data_ch3.push({x: timestamp, y: file[key].ch3})
+
+              if(file[key].change === "1"){
+                events_ch1.push({x: timestamp, y: file[key].ch1})
+                events_ch2.push({x: timestamp, y: file[key].ch2})
+                events_ch3.push({x: timestamp, y: file[key].ch3})
+              }
+          }
+        }
+    
+    }
+   return {ch1: data_ch1, ch2: data_ch2, ch3: data_ch3, e1: events_ch1, e2: events_ch2, e3: events_ch3}
+}
+
 // Saving the record
 function saveRecord(record){
-    const fields = csvFields
+    const fields = (Object.keys(record[0]))
         const json2csvParser = new Parser({ fields })
         const csvOut = json2csvParser.parse(record)
     

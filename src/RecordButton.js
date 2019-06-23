@@ -1,5 +1,6 @@
 const { ipcRenderer } = window.require('electron');
 import React from 'react';
+import { Button } from '@material-ui/core';
 
 export class RecordButton extends React.Component{
     constructor(props){
@@ -31,14 +32,14 @@ export class RecordButton extends React.Component{
       if (this.state.recordingON === false){ 
         return(
       
-        <button onClick={this.changeRecording} >Recording START</button>
+        <Button onClick={this.changeRecording} color="primary">Recording START</Button>
       
     )}
       
       else {
         return(
       
-          <button onClick={this.changeRecording} style={{color:'red'}}>Recording STOP</button>
+          <Button onClick={this.changeRecording} color="secondary">Recording STOP</Button>
         
       )}
     }

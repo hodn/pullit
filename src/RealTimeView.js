@@ -39,7 +39,7 @@ export class RealTimeView extends React.Component{
         const packet_ch2 = {x: arg.time, y: arg.ch2} 
         const packet_ch3 = {x: arg.time, y: arg.ch3} 
   
-        const timeWindow = 10
+        const timeWindow = 300 //seconds
 
         if (this.state.data_ch1.length <= timeWindow){
         this.setState((state) => ({
@@ -63,8 +63,6 @@ export class RealTimeView extends React.Component{
             e_ch1.splice(0,1)
             e_ch2.splice(0,1)
           }
-
-          console.log(e_ch1);
 
           this.setState({
             data_ch1: d_ch1,
@@ -110,7 +108,6 @@ export class RealTimeView extends React.Component{
 }
 
   lenghtReset(){
-    
     this.setState((state) => ({
       toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: state.toolsData.c},
     }), () => {this.updateCSV('reset')})
@@ -119,6 +116,7 @@ export class RealTimeView extends React.Component{
 
   updateCSV(event){
     ipcRenderer.send("tools-updated", this.state.toolsData)
+    
     if(this.state.data_ch1.length !== 0 && event !=='reset'){
     const last_ch1 = this.state.data_ch1[this.state.data_ch1.length-1]
     const last_ch2 = this.state.data_ch2[this.state.data_ch2.length-1]
@@ -133,7 +131,7 @@ export class RealTimeView extends React.Component{
     const c2 = 185
     const c3 = 220
     let crownSize = 0
-    
+
     switch(id) {
       case "c1":
         crownSize = c1
@@ -162,7 +160,7 @@ export class RealTimeView extends React.Component{
       return(
     
         <div>
-            <RecordButton/> 
+            <RecordButton/>
             <PortMenu/>
             <RealTimeControl lenghtHandler={this.lenghtHandler} lenghtReset={this.lenghtReset} crownHandler={this.crownHandler} />
             <RealTimeGraph data={this.state.data_ch1} eventData={this.state.events_ch1}/>

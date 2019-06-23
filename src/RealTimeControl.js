@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from '@material-ui/core/Button';
 
 export class RealTimeControl extends React.Component{
   constructor(props){
@@ -25,14 +26,14 @@ export class RealTimeControl extends React.Component{
       return(
     
         <div>
-          <button id="l1" onClick={(e) => this.props.lenghtHandler(e.target.id)}>1 m</button> 
-          <button id="l2" onClick={(e) => this.props.lenghtHandler(e.target.id)}>1.5 m</button> 
-          <button id="l3" onClick={(e) => this.props.lenghtHandler(e.target.id)}>2 m</button> 
-          <button id="l4" onClick={(e) => this.props.lenghtHandler(e.target.id)}>3 m</button>
-          <button id="delete" onClick={(e) => this.props.lenghtReset(e.target.id)}>Delete</button> <br/>
-          <button id="c1" onClick={(e) => this.props.crownHandler(e.target.id)}>173 mm</button>
-          <button id="c2" onClick={(e) => this.props.crownHandler(e.target.id)}>185 mm</button>
-          <button id="c3" onClick={(e) => this.props.crownHandler(e.target.id)}>220 mm</button>
+          <Button variant="outlined" onClick={(e) => this.props.lenghtHandler("l1")}>1 m</Button> 
+          <Button variant="outlined" onClick={(e) => this.props.lenghtHandler("l2")}>1.5 m</Button> 
+          <Button variant="outlined" onClick={(e) => this.props.lenghtHandler("l3")}>2 m</Button> 
+          <Button variant="outlined" onClick={(e) => this.props.lenghtHandler("l4")}>3 m</Button>
+          <Button variant="contained" color="secondary" onClick={(e) => this.props.lenghtReset("delete")}>Delete</Button>
+          <Button variant="outlined" onClick={(e) => this.props.crownHandler("c1")}>173 mm</Button>
+          <Button variant="outlined" onClick={(e) => this.props.crownHandler("c2")}>185 mm</Button>
+          <Button variant="outlined" onClick={(e) => this.props.crownHandler("c3")}>220 mm</Button>
        
         </div>
       
