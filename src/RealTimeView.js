@@ -1,6 +1,5 @@
 const { ipcRenderer } = window.require('electron');
 import React from 'react';
-import { PortMenu } from './PortMenu.js';
 import { RecordButton } from './RecordButton.js';
 import { RealTimeGraph } from './RealTimeGraph.js';
 import { RealTimeBar } from './RealTimeBar.js';
@@ -28,7 +27,7 @@ export class RealTimeView extends React.Component{
 
   componentDidMount() {
     
-    ipcRenderer.send('clear-to-send') 
+    //ipcRenderer.send('clear-to-send') 
 
     this.setState({
       toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: 0},
@@ -163,12 +162,13 @@ export class RealTimeView extends React.Component{
       return(
     
         <div>
-            <RecordButton/>
-            <PortMenu/>
-            <RealTimeControl lenghtHandler={this.lenghtHandler} lenghtReset={this.lenghtReset} crownHandler={this.crownHandler} />
+    
             <RealTimeGraph data={this.state.data_ch1} eventData={this.state.events_ch1}/>
             <RealTimeGraph data={this.state.data_ch2} eventData={this.state.events_ch2} />
             <RealTimeBar drillData={this.state.barData} tools={this.state.toolsData}/>
+            <RealTimeControl lenghtHandler={this.lenghtHandler} lenghtReset={this.lenghtReset} crownHandler={this.crownHandler} />
+            <RecordButton/>
+        
         </div>
       
       );

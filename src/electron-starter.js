@@ -66,11 +66,10 @@ app.on('activate', function () {
 
 process.on('unhandledRejection', error => {
     // Will print "unhandledRejection err is not defined"
-    electron.dialog.showErrorBox(error.message, "App has encountered an error - " + error.message)
+    electron.dialog.showErrorBox(error.message, error.message + ". Please, check if the settings are correct.")
   })
 process.on('uncaughtException', error => {
     electron.dialog.showErrorBox(error.message, "App has encountered an error - " + error.message)
-    mainWindow.close()
   })
 
 //////////////////////////////////////// Parsing data from COM port ////////////////////////////////////////
@@ -101,7 +100,7 @@ if (fs.existsSync("user-settings.txt")){
     
     fs.readFile("user-settings.txt", {encoding: 'utf-8'}, function(err,data){
         if (!err) {
-            const set = data.split("xx")
+            const set = data.split(",")
             defaultDir = set[1]
             defaultCOM = set[0]
             saveSettings(defaultCOM, defaultDir)
@@ -203,7 +202,7 @@ ipcMain.on('get-csv-data', (event, arg) => {
 // On clear to send - start parsing data
 ipcMain.on('clear-to-send', (event, arg) => {
 
-    // Port init (user selection in arg) and settings
+    // Port init from user settings
     let port = new SerialPort(defaultCOM, {
         baudRate: 115200
       })
@@ -386,7 +385,7 @@ function saveRecord(record){
 }
 
 function saveSettings(com, dir){
-    const settings = com.toString() + "xx" + dir.toString()
+    const settings = com.toString() + "," + dir.toString()
     fs.writeFile("user-settings.txt", settings, function (err) {
             
         if (err) throw err; 

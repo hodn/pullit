@@ -24,7 +24,7 @@ export class RealTimeGraph extends React.Component{
       return(
     
         <div>
-          <FlexibleWidthXYPlot height={200} xType="time" yDomain={[-2,2]}>
+          <FlexibleWidthXYPlot height={300} xType="time" yDomain={[-2,2]}>
           <LineSeries data={this.props.data} animation />
           <MarkSeries data={this.props.eventData}/>
           <XAxis/>

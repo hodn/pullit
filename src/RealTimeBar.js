@@ -1,4 +1,6 @@
 import React from 'react';
+import {Grid} from '@material-ui/core'
+import {StatCard} from './StatCard'
 
 export class RealTimeBar extends React.Component{
   constructor(props){
@@ -23,13 +25,22 @@ export class RealTimeBar extends React.Component{
 
       return(
     
-        <div>
+      <div>
+         <Grid container spacing={3}>
           
-         <p>Torque: {this.props.drillData.torque} Nm -- Force: {this.props.drillData.force} N -- Revs: {this.props.drillData.revs} RPM</p>
-         <p>1 m: {this.props.tools.l1} -- 1,5 m: {this.props.tools.l2} -- 2 m: {this.props.tools.l3} -- 3 m: {this.props.tools.l4}</p>
-         <p>Total: {this.props.tools.total} m -- Crown: {this.props.tools.c} mm</p>
+          <Grid item xs={4}> <StatCard name="Torque" data={this.props.drillData.torque} unit="Nm" /> </Grid> 
+          <Grid item xs={4}> <StatCard name="Force" data={this.props.drillData.force} unit="N"/> </Grid> 
+          <Grid item xs={4}> <StatCard name="Revolutions" data={this.props.drillData.revs} unit="RPM"/> </Grid>
+          <Grid item xs={1}> <StatCard name="1 m" data={this.props.tools.l1}/> </Grid> 
+          <Grid item xs={1}> <StatCard name="1.5 m" data={this.props.tools.l2}/> </Grid> 
+          <Grid item xs={1}> <StatCard name="2 m" data={this.props.tools.l3}/> </Grid> 
+          <Grid item xs={1}> <StatCard name="3 m" data={this.props.tools.l4}/> </Grid> 
+          <Grid item xs={4}> <StatCard name="Total lenght" data={this.props.tools.total} unit="m"/> </Grid>   
+          <Grid item xs={4}> <StatCard name="Crown" data={this.props.tools.c} unit="mm"/> </Grid>   
+
+          </Grid>
        
-        </div>
+      </div>
       
       );
     
