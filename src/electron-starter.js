@@ -199,106 +199,107 @@ ipcMain.on('get-csv-data', (event, arg) => {
 })
     
 // On clear to send - start parsing data
-ipcMain.on('clear-to-send', (event, arg) => {
-    let port = null
-    
-    if(defaultCOM !== ""){
-    // Port init from user settings
-        port = new SerialPort(defaultCOM, {
-        baudRate: 115200
-      })
-    }
-    
-    // Pipe init and delimiter settings  
-    const parser = port.pipe(new Delimiter({ delimiter: [0x00] }))
-    
-    // Init of buffers
-    const ch1Buffer = []
-    const ch2Buffer = []
-    const ch3Buffer = []
-    const ch4Buffer = []
-    
-    // Buffer size
-    const refreshRate = 25
-    
-    // Init drill tools
-    let lenght_1 = 0
-    let lenght_2 = 0
-    let lenght_3 = 0
-    let lenght_4 = 0
-    let totalLenght = 0
-    let crown = 0
-    let toolChanged = 0
 
-    ipcMain.on('tools-updated', (event, arg) => {
-        lenght_1 = arg.l1
-        lenght_2 = arg.l2
-        lenght_3 = arg.l3
-        lenght_4 = arg.l4
-        totalLenght = arg.total
-        crown = arg.c
-        toolChanged = 1
-    })
+if(defaultCOM !== ""){
+    ipcMain.on('clear-to-send', (event, arg) => {
+        
+        
+        // Port init from user settings
+            let port = new SerialPort(defaultCOM, {
+            baudRate: 115200
+        })
+        
+        
+        // Pipe init and delimiter settings  
+        const parser = port.pipe(new Delimiter({ delimiter: [0x00] }))
+        
+        // Init of buffers
+        const ch1Buffer = []
+        const ch2Buffer = []
+        const ch3Buffer = []
+        const ch4Buffer = []
+        
+        // Buffer size
+        const refreshRate = 25
+        
+        // Init drill tools
+        let lenght_1 = 0
+        let lenght_2 = 0
+        let lenght_3 = 0
+        let lenght_4 = 0
+        let totalLenght = 0
+        let crown = 0
+        let toolChanged = 0
 
-    // Switches the port into "flowing mode"
-    parser.on('data', function(data) {
-            
-            // Raw packets are parsed into array after decoding from EZ24 format
-            const channelData = arrayParserEZ24(Uint8Array.from(data))
+        ipcMain.on('tools-updated', (event, arg) => {
+            lenght_1 = arg.l1
+            lenght_2 = arg.l2
+            lenght_3 = arg.l3
+            lenght_4 = arg.l4
+            totalLenght = arg.total
+            crown = arg.c
+            toolChanged = 1
+        })
 
-            // Feeding buffer with parsed data
-            ch1Buffer.push(channelData[0])
-            ch2Buffer.push(channelData[1])
-            ch3Buffer.push(channelData[2])
-            ch4Buffer.push(channelData[3])
-
-            // Aggregation from the buffer and buffer release
-            if (ch4Buffer.length > refreshRate) {
-                const ch1 = aggregator(ch1Buffer)
-                const ch2 = aggregator(ch2Buffer)
-                const ch3 = aggregator(ch3Buffer)
+        // Switches the port into "flowing mode"
+        parser.on('data', function(data) {
                 
-                // Aggregation data packet for Renderer
-                const aggSet = {
-                    'time': Date.now(),
-                    'ch1': ch1, 
-                    'ch2': ch2, 
-                    'ch3': ch3,
-                }
+                // Raw packets are parsed into array after decoding from EZ24 format
+                const channelData = arrayParserEZ24(Uint8Array.from(data))
 
-                ch1Buffer.splice(0, refreshRate)
-                ch2Buffer.splice(0, refreshRate)
-                ch3Buffer.splice(0, refreshRate)
-                ch4Buffer.splice(0, refreshRate)
-                
-                //Sending aggregation data to Renderer
-                event.sender.send('data-parsed', aggSet)
-                
-                //If recording is ON - append the data to CSV array
-                if(recordingON === true){
-                    const csvSet = {
-                        'Time': new Date().toUTCString(), 
+                // Feeding buffer with parsed data
+                ch1Buffer.push(channelData[0])
+                ch2Buffer.push(channelData[1])
+                ch3Buffer.push(channelData[2])
+                ch4Buffer.push(channelData[3])
+
+                // Aggregation from the buffer and buffer release
+                if (ch4Buffer.length > refreshRate) {
+                    const ch1 = aggregator(ch1Buffer)
+                    const ch2 = aggregator(ch2Buffer)
+                    const ch3 = aggregator(ch3Buffer)
+                    
+                    // Aggregation data packet for Renderer
+                    const aggSet = {
+                        'time': Date.now(),
                         'ch1': ch1, 
                         'ch2': ch2, 
                         'ch3': ch3,
-                        'l1': lenght_1, 
-                        'l2': lenght_2, 
-                        'l3': lenght_3,
-                        'l4': lenght_4,
-                        'total': totalLenght,
-                        'c': crown,
-                        'change': toolChanged
                     }
+
+                    ch1Buffer.splice(0, refreshRate)
+                    ch2Buffer.splice(0, refreshRate)
+                    ch3Buffer.splice(0, refreshRate)
+                    ch4Buffer.splice(0, refreshRate)
                     
-                    csvRecord.push(csvSet)
-                    toolChanged = 0
-                }
-        }
-      
-  });
+                    //Sending aggregation data to Renderer
+                    event.sender.send('data-parsed', aggSet)
+                    
+                    //If recording is ON - append the data to CSV array
+                    if(recordingON === true){
+                        const csvSet = {
+                            'Time': new Date().toUTCString(), 
+                            'ch1': ch1, 
+                            'ch2': ch2, 
+                            'ch3': ch3,
+                            'l1': lenght_1, 
+                            'l2': lenght_2, 
+                            'l3': lenght_3,
+                            'l4': lenght_4,
+                            'total': totalLenght,
+                            'c': crown,
+                            'change': toolChanged
+                        }
+                        
+                        csvRecord.push(csvSet)
+                        toolChanged = 0
+                    }
+            }
+        
+    });
 
-  })
-
+    })
+}
 // Parsing 4 bytes from each EZ24 packet and converting to actual value
 function parserEZ24([a, b, c, d]){
     
