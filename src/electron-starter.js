@@ -112,7 +112,6 @@ if (fs.existsSync("user-settings.txt")){
 }
 else {
     defaultDir = app.getPath('documents')
-    defaultCOM = "COM6"
     saveSettings(defaultCOM, defaultDir)
 }
 
@@ -134,6 +133,10 @@ ipcMain.on('change-com', (event, arg) => {
 
     defaultCOM = arg
     saveSettings(defaultCOM, defaultDir)
+})
+
+ipcMain.on('settings-info', (event, arg) => {
+    event.sender.send('settings-loaded', {dir: defaultDir, com: defaultCOM})
 })
 
 // List available ports on event from Renderer
@@ -197,12 +200,15 @@ ipcMain.on('get-csv-data', (event, arg) => {
     
 // On clear to send - start parsing data
 ipcMain.on('clear-to-send', (event, arg) => {
-
+    let port = null
+    
+    if(defaultCOM !== ""){
     // Port init from user settings
-    let port = new SerialPort(defaultCOM, {
+        port = new SerialPort(defaultCOM, {
         baudRate: 115200
       })
-   
+    }
+    
     // Pipe init and delimiter settings  
     const parser = port.pipe(new Delimiter({ delimiter: [0x00] }))
     

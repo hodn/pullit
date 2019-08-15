@@ -31,6 +31,8 @@ export class SettingsView extends React.Component{
       
      })
 
+     ipcRenderer.send("settings-info")
+
       ipcRenderer.on('dir-changed', (event, arg) => {
 
         this._isMounted && this.setState((state, props) => ({
@@ -63,7 +65,7 @@ export class SettingsView extends React.Component{
 
   handleClick() {
     
-    ipcRenderer.send('change-dir') 
+    ipcRenderer.send('change-dir')
   }
     
   //What the actual component renders
