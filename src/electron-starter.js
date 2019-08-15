@@ -187,11 +187,7 @@ ipcMain.on('get-csv-data', (event, arg) => {
     
     if(arg.start === null && arg.end === null){
         
-        electron.dialog.showErrorBox("No file selected",  "Please, load the CSV log file.")
-    }
-    else if(arg.start > arg.end) {
-        
-        electron.dialog.showErrorBox("Incorrect time window",  "Please, check the time selection.")
+        electron.dialog.showErrorBox("No file selected",  "Please, load the CSV record file.")
     }
     else{
         const packet = filterCSV(csvHistory, arg.start, arg.end)

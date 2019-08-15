@@ -2,16 +2,17 @@ const { ipcRenderer } = window.require('electron');
 import React from 'react';
 import { HistoryGraph } from './HistoryGraph.js';
 import DateFnsUtils from "@date-io/date-fns";
-import { Button } from '@material-ui/core';
+import { Button, Card, Typography, CardActions, CardContent } from '@material-ui/core';
+import {InsertDriveFile, Timeline} from '@material-ui/icons'
 import { MuiPickersUtilsProvider, DateTimePicker } from "@material-ui/pickers";
 
 export class HistoryView extends React.Component{
     constructor(props){
       super(props);
       this.state = {
-        range: [],
         start: null,
         end: null,
+        range:[],
         data_ch1: [],
         data_ch2: [],
         data_ch3: [],
@@ -37,7 +38,7 @@ export class HistoryView extends React.Component{
         const endFormat = new Date(end)
         
         this.setState({
-          range: [startFormat.toLocaleString(), endFormat.toLocaleString()],
+          range: [startFormat.toLocaleString(), endFormat.toLocaleTimeString()],
           start: start,
           end: end
         })
@@ -65,17 +66,28 @@ export class HistoryView extends React.Component{
   
   handleChangeStart(date) {
     const time = Date.parse(date)
-    this.setState({ start: time})
-  
+    if(time >= this.state.start && time <= this.state.end){
+      this.setState({ start: time})
+    }
+    else {
+      alert("Selected time is out of bounds. Record timerange: " + this.state.range[0].toString() + " - " + this.state.range[1].toString())
+    }
+    
   }
 
   handleChangeEnd(date) {
     const time = Date.parse(date)
-    this.setState({ end: time })
+    if(time >= this.state.end && time <= this.state.start){
+      this.setState({ end: time})
+    }
+    else {
+      alert("Selected time is out of bounds. Record timerange: " + this.state.range[0].toString() + " - " + this.state.range[1].toString())
+    }
   }
 
   handleLoadClick() {
-    ipcRenderer.send('load-csv') // Move this to History View later
+    ipcRenderer.send('load-csv')
+    console.log(this.state.range)
   }
 
   handleDataClick() {
@@ -87,17 +99,41 @@ export class HistoryView extends React.Component{
   
       return(
         <div>
-          <p>Start: {this.state.range[0]} </p>
-          <p>End: {this.state.range[1]} </p>
-          <Button onClick={this.handleLoadClick}>Load file</Button>
-          <MuiPickersUtilsProvider utils={DateFnsUtils}>
-      
-            <DateTimePicker value={this.state.start} onChange={this.handleChangeStart} ampm={false} openTo="hours" emptyLabel="From"/>
-            <DateTimePicker value={this.state.end} onChange={this.handleChangeEnd} ampm={false} openTo="hours" emptyLabel="To"/>
-      
-          </MuiPickersUtilsProvider>
           
-          <Button onClick={this.handleDataClick}>Visualize</Button>
+          
+          <Card>
+                <CardContent>
+                    
+                    <Typography color="textSecondary">
+                    Select CSV record to view
+                    </Typography>
+          
+                </CardContent>
+                <CardActions>
+                  <Button onClick={this.handleLoadClick}><InsertDriveFile/> Load file</Button>
+                </CardActions>
+            </Card>
+
+            <Card>
+                <CardContent>
+                    
+                    <Typography color="textSecondary">
+                    Select timeframe to visualize
+                    </Typography>
+
+                    <MuiPickersUtilsProvider utils={DateFnsUtils}>
+      
+                      <DateTimePicker value={this.state.start} onChange={this.handleChangeStart} ampm={false} openTo="hours" emptyLabel="From"/>
+                      <DateTimePicker value={this.state.end} onChange={this.handleChangeEnd} ampm={false} openTo="hours" emptyLabel="To"/>
+                
+                    </MuiPickersUtilsProvider>
+          
+                </CardContent>
+                <CardActions>
+                  <Button onClick={this.handleDataClick}><Timeline/>Visualize</Button>
+                </CardActions>
+            </Card>
+        
           <HistoryGraph channel="1" data={this.state.data_ch1} events={this.state.events_ch1}/>
           <HistoryGraph channel="2" data={this.state.data_ch2} events={this.state.events_ch2}/>
           <HistoryGraph channel="3" data={this.state.data_ch3} events={this.state.events_ch3}/>

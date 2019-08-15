@@ -1,9 +1,9 @@
 const { ipcRenderer } = window.require('electron');
 import React from 'react';
-import { RecordButton } from './RecordButton.js';
 import { RealTimeGraph } from './RealTimeGraph.js';
-import { RealTimeBar } from './RealTimeBar.js';
-import { RealTimeControl } from './RealTimeControl.js';
+import { RealTimeInfo} from './RealTimeInfo.js';
+import { RealTimeLenght } from './RealTimeLenght';
+import { RealTimeCrown } from './RealTimeCrown';
 
 export class RealTimeView extends React.Component{
   constructor(props){
@@ -162,12 +162,12 @@ export class RealTimeView extends React.Component{
       return(
     
         <div>
-    
+          
             <RealTimeGraph data={this.state.data_ch1} eventData={this.state.events_ch1}/>
             <RealTimeGraph data={this.state.data_ch2} eventData={this.state.events_ch2} />
-            <RealTimeBar drillData={this.state.barData} tools={this.state.toolsData}/>
-            <RealTimeControl lenghtHandler={this.lenghtHandler} lenghtReset={this.lenghtReset} crownHandler={this.crownHandler} />
-            <RecordButton/>
+            <RealTimeInfo drillData={this.state.barData} tools={this.state.toolsData}/>
+            <RealTimeLenght lenghtHandler={this.lenghtHandler} lenghtReset={this.lenghtReset}/>
+            <RealTimeCrown crownHandler={this.crownHandler} />
         
         </div>
       

@@ -3,6 +3,7 @@ import '../node_modules/react-vis/dist/style.css';
 import { RealTimeView } from './RealTimeView.js';
 import { HistoryView } from './HistoryView';
 import { SettingsView } from './SettingsView';
+import { RecordButton } from './RecordButton.js';
 import {
   Route,
   Link,
@@ -31,6 +32,7 @@ import {ImportExport, History, Settings} from '@material-ui/icons'
                 <Tab label="Real time" icon={< ImportExport/>} component={Link} to="/" />
                 <Tab label="History" icon={< History/>} component={Link} to="/history" />
                 <Tab label="Settings" icon={< Settings/>} component={Link} to="/settings" />
+                <RecordButton/>
               </Tabs>
           </Paper>
 

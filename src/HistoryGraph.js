@@ -1,5 +1,5 @@
 import React from 'react';
-import {XYPlot, XAxis, YAxis, LineSeries, HorizontalGridLines, VerticalGridLines ,MarkSeries} from 'react-vis';
+import {FlexibleWidthXYPlot, XAxis, YAxis, LineSeries, HorizontalGridLines, VerticalGridLines ,MarkSeries} from 'react-vis';
 
 export class HistoryGraph extends React.Component{
     constructor(props){
@@ -25,14 +25,14 @@ export class HistoryGraph extends React.Component{
       <div>
           <h1>Channel {this.props.channel} history</h1>
         
-          <XYPlot height={300} width={800} xType="time" yDomain={[-2,2]}>
+          <FlexibleWidthXYPlot height={300} xType="time" yDomain={[-2,2]}>
             <HorizontalGridLines />
             <VerticalGridLines/>
             <XAxis />
             <YAxis/>
             <LineSeries data={this.props.data} animation />
             <MarkSeries data={this.props.events} animation/>
-          </XYPlot>
+          </FlexibleWidthXYPlot>
   
       </div>
         );
