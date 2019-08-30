@@ -4,6 +4,7 @@ import { RealTimeGraph } from './RealTimeGraph.js';
 import { RealTimeInfo} from './RealTimeInfo.js';
 import { RealTimeLenght } from './RealTimeLenght';
 import { RealTimeCrown } from './RealTimeCrown';
+import { Grid } from '@material-ui/core';
 
 export class RealTimeView extends React.Component{
   constructor(props){
@@ -163,12 +164,28 @@ export class RealTimeView extends React.Component{
     
         <div>
           
-            <RealTimeGraph data={this.state.data_ch1} eventData={this.state.events_ch1}/>
-            <RealTimeGraph data={this.state.data_ch2} eventData={this.state.events_ch2} />
-            <RealTimeInfo drillData={this.state.barData} tools={this.state.toolsData}/>
-            <RealTimeLenght lenghtHandler={this.lenghtHandler} lenghtReset={this.lenghtReset}/>
-            <RealTimeCrown crownHandler={this.crownHandler} />
-        
+          <Grid container spacing={1}>
+            <Grid item xs={12} md={12}>  
+              <RealTimeGraph data={this.state.data_ch1} eventData={this.state.events_ch1}/>
+            </Grid>
+            
+            <Grid item xs={12} md={12}>  
+              <RealTimeGraph data={this.state.data_ch2} eventData={this.state.events_ch2} />
+            </Grid>
+
+            <Grid item xs={12} md={12}>  
+              <RealTimeInfo drillData={this.state.barData} tools={this.state.toolsData}/>
+            </Grid>
+
+            <Grid item xs={6}>  
+              <RealTimeLenght lenghtHandler={this.lenghtHandler} lenghtReset={this.lenghtReset}/>
+            </Grid>
+            
+            <Grid item xs={6}>  
+              <RealTimeCrown crownHandler={this.crownHandler} />
+            </Grid>
+            
+          </Grid>
         </div>
       
       );

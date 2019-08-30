@@ -32,9 +32,9 @@ export class RealTimeCrown extends React.Component{
               Crown Control
               </Typography>
               
-              <Button variant="contained" onClick={(e) => this.props.crownHandler("c1")}>173 mm</Button>
-              <Button variant="contained" onClick={(e) => this.props.crownHandler("c2")}>185 mm</Button>
-              <Button variant="contained" onClick={(e) => this.props.crownHandler("c3")}>220 mm</Button>
+              <Button id="control" variant="contained" onClick={(e) => this.props.crownHandler("c1")}>173 mm</Button>
+              <Button id="control" variant="contained" onClick={(e) => this.props.crownHandler("c2")}>185 mm</Button>
+              <Button id="control" variant="contained" onClick={(e) => this.props.crownHandler("c3")}>220 mm</Button>
             
           </Paper>
           

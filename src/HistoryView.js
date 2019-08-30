@@ -77,7 +77,7 @@ export class HistoryView extends React.Component{
 
   handleChangeEnd(date) {
     const time = Date.parse(date)
-    if(time >= this.state.end && time <= this.state.start){
+    if(time >= this.state.start && time <= this.state.end){
       this.setState({ end: time})
     }
     else {
@@ -87,7 +87,6 @@ export class HistoryView extends React.Component{
 
   handleLoadClick() {
     ipcRenderer.send('load-csv')
-    console.log(this.state.range)
   }
 
   handleDataClick() {
@@ -104,21 +103,25 @@ export class HistoryView extends React.Component{
           <Card>
                 <CardContent>
                     
+                    <Typography variant="h5" component="h4">
+                    CSV FILE
+                    </Typography>
+
                     <Typography color="textSecondary">
-                    Select CSV record to view
+                    {this.state.range[0]}
                     </Typography>
           
                 </CardContent>
                 <CardActions>
-                  <Button onClick={this.handleLoadClick}><InsertDriveFile/> Load file</Button>
+                  <Button onClick={this.handleLoadClick} variant="outlined" color="primary"><InsertDriveFile/> Load file</Button>
                 </CardActions>
             </Card>
 
             <Card>
                 <CardContent>
                     
-                    <Typography color="textSecondary">
-                    Select timeframe to visualize
+                    <Typography variant="h5" component="h4">
+                    TIMEFRAME
                     </Typography>
 
                     <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -130,7 +133,7 @@ export class HistoryView extends React.Component{
           
                 </CardContent>
                 <CardActions>
-                  <Button onClick={this.handleDataClick}><Timeline/>Visualize</Button>
+                  <Button onClick={this.handleDataClick} variant="outlined" color="primary"><Timeline/>Visualize</Button>
                 </CardActions>
             </Card>
         

@@ -1,5 +1,6 @@
 import React from 'react';
 import {FlexibleWidthXYPlot, XAxis, YAxis, LineSeries, HorizontalGridLines, VerticalGridLines ,MarkSeries} from 'react-vis';
+import { Typography } from '@material-ui/core';
 
 export class HistoryGraph extends React.Component{
     constructor(props){
@@ -23,7 +24,9 @@ export class HistoryGraph extends React.Component{
     render(){    
         return(
       <div>
-          <h1>Channel {this.props.channel} history</h1>
+         <Typography variant="h5" component="h4">
+            Channel {this.props.channel}
+          </Typography>
         
           <FlexibleWidthXYPlot height={300} xType="time" yDomain={[-2,2]}>
             <HorizontalGridLines />

@@ -67,7 +67,6 @@ export class SettingsView extends React.Component{
     
     ipcRenderer.send('change-dir')
   }
-    
   //What the actual component renders
     render(){    
   
@@ -85,9 +84,9 @@ export class SettingsView extends React.Component{
                 </CardContent>
                 <CardActions>
                   <SettingsInputHdmi/>
-                    <FormControl>
-                            <Select onChange={this.handleChange} value={this.state.selectedPort}>
-                            <InputLabel>COM PORT</InputLabel>
+                    <FormControl id="select" variant="outlined" >
+                      <InputLabel>PORT   </InputLabel>
+                            <Select onChange={this.handleChange} value={this.state.selectedPort} autoWidth> 
                                 {this.state.portList.map((item, index) => (
                                   <MenuItem key={index} value={item}>{item}</MenuItem>
                                 ))}
@@ -107,7 +106,7 @@ export class SettingsView extends React.Component{
           
                 </CardContent>
                 <CardActions>
-                  <Button variant="contained" onClick={this.handleClick}><Folder/></Button>
+                  <Button variant="outlined" color="primary" onClick={this.handleClick}><Folder/> Select directory</Button>
                 </CardActions>
             </Card>
           
