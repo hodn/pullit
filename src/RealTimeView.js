@@ -9,6 +9,8 @@ import { Grid } from '@material-ui/core';
 export class RealTimeView extends React.Component{
   constructor(props){
     super(props);
+    
+    this._isMounted = false;
     this.state = {
       data_ch1: [],
       data_ch2: [],
@@ -28,12 +30,16 @@ export class RealTimeView extends React.Component{
 
   componentDidMount() {
 
-    this.setState({
-      toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: 0},
-      barData: {torque: 0, force: 0, revs: 0}
-  });
-    
-    // Listener on parsed data from Electron
+    this._isMounted = true
+
+    if(this._isMounted){
+      this.setState({
+        toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: 0},
+        barData: {torque: 0, force: 0, revs: 0}
+      });
+    }
+
+   // Listener on parsed data from Electron
     ipcRenderer.on('data-parsed', (event, arg) => { 
      
         const packet_ch1 = {x: arg.time, y: arg.ch1}
@@ -43,12 +49,14 @@ export class RealTimeView extends React.Component{
         const timeWindow = 300 //seconds
 
         if (this.state.data_ch1.length <= timeWindow){
-        this.setState((state) => ({
+        
+          if(this._isMounted){
+            this.setState((state) => ({
             data_ch1: [...state.data_ch1, packet_ch1],
             data_ch2: [...state.data_ch2, packet_ch2],
             data_ch3: [...state.data_ch3, packet_ch3],
             barData: {torque: packet_ch1.y, force: packet_ch2.y, revs: packet_ch3.y}
-        }))} 
+        }))}}
         else {
           const d_ch1 = this.state.data_ch1
           const d_ch2 = this.state.data_ch2
@@ -65,6 +73,7 @@ export class RealTimeView extends React.Component{
             e_ch2.splice(0,1)
           }
 
+          if(this._isMounted){
           this.setState({
             data_ch1: d_ch1,
             data_ch2: d_ch2,
@@ -72,7 +81,8 @@ export class RealTimeView extends React.Component{
             events_ch1: e_ch1,
             events_ch2: e_ch2,
             barData: {torque: packet_ch1.y, force: packet_ch2.y, revs: packet_ch3.y}
-          });
+            });
+          }
         }
      
       
@@ -81,7 +91,7 @@ export class RealTimeView extends React.Component{
   }
 
   componentWillUnmount(){
-    
+    this._isMounted = false
 }
   
   lenghtHandler(id){
