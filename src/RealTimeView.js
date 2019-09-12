@@ -27,8 +27,6 @@ export class RealTimeView extends React.Component{
   }
 
   componentDidMount() {
-    
-    //ipcRenderer.send('clear-to-send') 
 
     this.setState({
       toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: 0},

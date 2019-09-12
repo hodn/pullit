@@ -10,7 +10,8 @@ import {
   HashRouter
 } from "react-router-dom";
 import {Tab, Tabs, Paper} from '@material-ui/core';
-import {ImportExport, History, Settings} from '@material-ui/icons'
+import {ImportExport, History, Settings} from '@material-ui/icons';
+const { ipcRenderer } = window.require('electron');
 
   class Navbar extends Component {
     state = {
@@ -19,6 +20,10 @@ import {ImportExport, History, Settings} from '@material-ui/icons'
 
     handleChange = (event, value) => {
         this.setState({ value });
+      };
+    
+    componentDidMount() {
+        ipcRenderer.send('clear-to-send')
       };
     
     

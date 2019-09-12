@@ -70,6 +70,7 @@ process.on('unhandledRejection', error => {
   })
 process.on('uncaughtException', error => {
     electron.dialog.showErrorBox(error.message, "App has encountered an error - " + error.message)
+    console.log(error);
   })
 
 //////////////////////////////////////// Parsing data from COM port ////////////////////////////////////////
@@ -200,16 +201,14 @@ ipcMain.on('get-csv-data', (event, arg) => {
     
 // On clear to send - start parsing data
 
-if(defaultCOM !== ""){
-    ipcMain.on('clear-to-send', (event, arg) => {
-        
-        
-        // Port init from user settings
-            let port = new SerialPort(defaultCOM, {
+
+ipcMain.on('clear-to-send', (event, arg) => {
+    
+    // Port init from user settings
+            port = new SerialPort(defaultCOM, {
             baudRate: 115200
         })
-        
-        
+
         // Pipe init and delimiter settings  
         const parser = port.pipe(new Delimiter({ delimiter: [0x00] }))
         
@@ -246,7 +245,7 @@ if(defaultCOM !== ""){
                 
                 // Raw packets are parsed into array after decoding from EZ24 format
                 const channelData = arrayParserEZ24(Uint8Array.from(data))
-
+            
                 // Feeding buffer with parsed data
                 ch1Buffer.push(channelData[0])
                 ch2Buffer.push(channelData[1])
@@ -296,10 +295,11 @@ if(defaultCOM !== ""){
                     }
             }
         
-    });
+        });
+        
+    
+})
 
-    })
-}
 // Parsing 4 bytes from each EZ24 packet and converting to actual value
 function parserEZ24([a, b, c, d]){
     
