@@ -105,7 +105,7 @@ if (fs.existsSync("user-settings.txt")){
             defaultDir = set[1]
             defaultCOM = set[0]
             saveSettings(defaultCOM, defaultDir)
-            startStream()
+
         } else {
             electron.dialog.showErrorBox(err.message, "App has encountered an error - " + err.message)
         }
@@ -135,7 +135,6 @@ ipcMain.on('change-com', (event, arg) => {
 
     defaultCOM = arg
     saveSettings(defaultCOM, defaultDir)
-    startStream()
 })
 
 ipcMain.on('settings-info', (event, arg) => {
@@ -203,11 +202,10 @@ ipcMain.on('get-csv-data', (event, arg) => {
     
 // On clear to send - start parsing data
 
-function startStream(){
-    ipcMain.on('clear-to-send', (event, arg) => {
+ipcMain.on('clear-to-send', (event, arg) => {
         
         // Port init from user settings
-                port = new SerialPort(defaultCOM, {
+                let port = new SerialPort(defaultCOM, {
                 baudRate: 115200
             })
 
@@ -301,7 +299,7 @@ function startStream(){
             
         
     })
-}
+
 
 // Parsing 4 bytes from each EZ24 packet and converting to actual value
 function parserEZ24([a, b, c, d]){

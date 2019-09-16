@@ -23,7 +23,9 @@ const { ipcRenderer } = window.require('electron');
       };
     
     componentDidMount() {
-        ipcRenderer.send('clear-to-send')
+      
+      ipcRenderer.send('clear-to-send')
+
       };
     
     

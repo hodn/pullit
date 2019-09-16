@@ -60,7 +60,7 @@ export class SettingsView extends React.Component{
     this.setState({ selectedPort: event.target.value})
     ipcRenderer.send('change-com', event.target.value)
     ipcRenderer.send("settings-info")
-    ipcRenderer.send('clear-to-send')  
+    ipcRenderer.send('clear-to-send') 
   }
 
   handleClick() {

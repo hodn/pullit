@@ -18,12 +18,14 @@ export class RealTimeView extends React.Component{
       events_ch1:[],
       events_ch2:[],
       barData:{},
-      toolsData:{}
+      toolsData:{}, 
+      prevToolsData:[]
     }
 
     this.lenghtHandler = this.lenghtHandler.bind(this)
     this.crownHandler = this.crownHandler.bind(this)
     this.lenghtReset = this.lenghtReset.bind(this)
+    this.undo = this.undo.bind(this)
     this.countLenght = this.countLenght.bind(this)
     this.updateCSV = this.updateCSV.bind(this)
   }
@@ -32,6 +34,7 @@ export class RealTimeView extends React.Component{
 
     this._isMounted = true
 
+    //init of displayed data
     if(this._isMounted){
       this.setState({
         toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: 0},
@@ -41,13 +44,15 @@ export class RealTimeView extends React.Component{
 
    // Listener on parsed data from Electron
     ipcRenderer.on('data-parsed', (event, arg) => { 
-     
+      
+        // parsing packets from device
         const packet_ch1 = {x: arg.time, y: arg.ch1}
         const packet_ch2 = {x: arg.time, y: arg.ch2} 
         const packet_ch3 = {x: arg.time, y: arg.ch3} 
   
         const timeWindow = 300 //seconds
 
+        //adding data until timewindow is full
         if (this.state.data_ch1.length <= timeWindow){
         
           if(this._isMounted){
@@ -64,9 +69,13 @@ export class RealTimeView extends React.Component{
           const e_ch1 = this.state.events_ch1
           const e_ch2 = this.state.events_ch2
 
+          //popping data beyond timewindow
+
           d_ch1.splice(0,1)
           d_ch2.splice(0,1)
           d_ch3.splice(0,1)
+
+          //popping events beyond timewindow
 
           if(e_ch1.length !== 0 && e_ch1[0].x <= d_ch1[0].x){
             e_ch1.splice(0,1)
@@ -96,6 +105,7 @@ export class RealTimeView extends React.Component{
   
   lenghtHandler(id){
     this.setState(state => ({
+      prevToolsData: [...state.prevToolsData, state.toolsData],
       toolsData: {                   
           ...state.toolsData,    
           [id]: state.toolsData[id] + 1
@@ -121,19 +131,46 @@ export class RealTimeView extends React.Component{
   lenghtReset(){
     this.setState((state) => ({
       toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: state.toolsData.c},
-    }), () => {this.updateCSV('reset')})
+      prevToolsData: []
+    }), () => {this.updateCSV()})
   
+}
+
+  undo(){
+    
+    if (this.state.prevToolsData.length > 0){
+    
+    this.setState((state) => ({
+      toolsData: state.prevToolsData[this.state.prevToolsData.length-1],
+    }), () => {
+      this.updateCSV("undo")})
+  }
 }
 
   updateCSV(event){
     ipcRenderer.send("tools-updated", this.state.toolsData)
+
+    if (event === "undo" && this.state.events_ch1.length > 0){
+      this.setState({
+        events_ch1: this.state.events_ch1.filter((_, i) => i !== (this.state.events_ch1.length-1)),
+        events_ch2: this.state.events_ch2.filter((_, i) => i !== (this.state.events_ch2.length-1)),
+      });
+
+      if(this.state.prevToolsData.length > 1){
+
+        this.setState({
+          prevToolsData: this.state.prevToolsData.filter((_, i) => i !== (this.state.prevToolsData.length-1)),
+        });
+
+      }
+    }
     
-    if(this.state.data_ch1.length !== 0 && event !=='reset'){
+    if(this.state.data_ch1.length > 0 && event !== "undo"){
     const last_ch1 = this.state.data_ch1[this.state.data_ch1.length-1]
     const last_ch2 = this.state.data_ch2[this.state.data_ch2.length-1]
     this.setState(state => ({
       events_ch1: [...state.events_ch1, last_ch1],
-      events_ch2: [...state.events_ch2, last_ch2]
+      events_ch2: [...state.events_ch2, last_ch2],
     }))
   }
 }
@@ -158,6 +195,7 @@ export class RealTimeView extends React.Component{
     }
     
     this.setState(state => ({
+      prevToolsData: [...state.prevToolsData, state.toolsData],
       toolsData: {                   
           ...state.toolsData,    
           c: crownSize
@@ -186,7 +224,7 @@ export class RealTimeView extends React.Component{
             </Grid>
 
             <Grid item xs={6}>  
-              <RealTimeLenght lenghtHandler={this.lenghtHandler} lenghtReset={this.lenghtReset}/>
+              <RealTimeLenght lenghtHandler={this.lenghtHandler} lenghtReset={this.lenghtReset} undo={this.undo}/>
             </Grid>
             
             <Grid item xs={6}>  
