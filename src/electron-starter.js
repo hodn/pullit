@@ -2,6 +2,8 @@ const { Parser } = require('json2csv');
 const fs = require('fs');
 // Module to include electron
 const electron = require('electron');
+// Peak detection lib
+const zscore = require ('./zscore.js');
 // Module for file paths
 const path = require('path');
 // Module for hot reload 
@@ -218,7 +220,11 @@ ipcMain.on('clear-to-send', (event, arg) => {
             const ch3Buffer = []
             const ch4Buffer = []
             
-            // Buffer size
+            //Variables for RPM calculations
+            let rpm = 0
+            const rpmBuffer = []
+            
+            // Buffer size - 25Hz 
             const refreshRate = 25
             
             // Init drill tools
@@ -245,30 +251,55 @@ ipcMain.on('clear-to-send', (event, arg) => {
                     
                     // Raw packets are parsed into array after decoding from EZ24 format
                     const channelData = arrayParserEZ24(Uint8Array.from(data))
-                
+
                     // Feeding buffer with parsed data
                     ch1Buffer.push(channelData[0])
                     ch2Buffer.push(channelData[1])
-                    ch3Buffer.push(channelData[2])
+                    ch3Buffer.push(Math.abs(channelData[2]))
                     ch4Buffer.push(channelData[3])
 
+                    // 10 values for peak detection - every 400ms
+                    if(ch3Buffer.length >= 10){
+                        const signals = zscore(ch3Buffer, {lag: 3, threshold: 5.2})  
+                        
+                        if (rotationDetector(signals)) {
+                            rpmBuffer.push(Date.now())
+                            console.log(Date.now());
+                        }                                                  
+                        
+                        ch3Buffer.splice(0, 10)
+                    }
+
+                    
+                    if(Date.now() - rpmBuffer[rpmBuffer.length-1] > 15000){
+                        rpm = 0
+                        rpmBuffer.splice(0, rpmBuffer.length)
+                    }
+
+                    if (rpmBuffer.length >= 7){
+
+                        const elapsedTime = rpmBuffer[rpmBuffer.length-1] - rpmBuffer[0]
+                        rpm = ((60000 / elapsedTime) * 7) 
+                        
+                        rpmBuffer.splice(0, 4)
+                        
+                    }
+                   
                     // Aggregation from the buffer and buffer release
-                    if (ch4Buffer.length > refreshRate) {
+                    if (ch4Buffer.length >= refreshRate) {
                         const ch1 = aggregator(ch1Buffer)
                         const ch2 = aggregator(ch2Buffer)
-                        const ch3 = aggregator(ch3Buffer)
                         
                         // Aggregation data packet for Renderer
                         const aggSet = {
                             'time': Date.now(),
                             'ch1': ch1, 
                             'ch2': ch2, 
-                            'ch3': ch3,
+                            'ch3': rpm.toFixed(1),
                         }
-
+                        
                         ch1Buffer.splice(0, refreshRate)
                         ch2Buffer.splice(0, refreshRate)
-                        ch3Buffer.splice(0, refreshRate)
                         ch4Buffer.splice(0, refreshRate)
                         
                         //Sending aggregation data to Renderer
@@ -277,15 +308,15 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         //If recording is ON - append the data to CSV array
                         if(recordingON === true){
                             const csvSet = {
-                                'Time': new Date().toUTCString(), 
-                                'ch1': ch1, 
-                                'ch2': ch2, 
-                                'ch3': ch3,
+                                'Time': new Date().toLocaleTimeString(),
+                                'ch1': localeFormat(ch1,2), 
+                                'ch2': localeFormat(ch2,2), 
+                                'ch3': localeFormat(rpm,1),
                                 'l1': lenght_1, 
                                 'l2': lenght_2, 
                                 'l3': lenght_3,
                                 'l4': lenght_4,
-                                'total': totalLenght,
+                                'total': localeFormat(totalLenght,1),
                                 'c': crown,
                                 'change': toolChanged
                             }
@@ -327,6 +358,24 @@ function unitConverter(number){
     let result = (number/unit) - 3
     
     return result
+}
+// Detects a rotation - returns 1 or 0
+function rotationDetector(signals){
+    let peakCount = 0
+                        
+    signals.forEach(s => {
+        
+        if(s !== 0){
+            peakCount++
+        }
+    });
+    
+    if(peakCount > 3) {
+        return true
+    }else{
+        return false
+    }
+
 }
 // Calculation of average from buffer
 function aggregator(bufferArray){
@@ -376,7 +425,8 @@ function saveRecord(record){
     let savePath = path.join(defaultDir, filename + ".csv")
 
     const fields = (Object.keys(record[0]))
-        const json2csvParser = new Parser({ fields })
+    const delimiter = ";"
+        const json2csvParser = new Parser({ fields, delimiter })
         const csvOut = json2csvParser.parse(record)
         
         fs.writeFile(savePath, csvOut, function (err) {
@@ -395,4 +445,8 @@ function saveSettings(com, dir){
         if (err) throw err; 
     
     })
+}
+
+function localeFormat(number, decimals){
+    return parseFloat(number.toFixed(decimals)).toLocaleString()
 }
