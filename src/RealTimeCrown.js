@@ -1,3 +1,4 @@
+const { ipcRenderer } = window.require('electron');
 import React from 'react';
 import {Button, Paper, Typography} from '@material-ui/core';
 
@@ -5,13 +6,20 @@ export class RealTimeCrown extends React.Component{
   constructor(props){
     super(props);
     this.state = {
+      disabled: true
       
     }
 
   }
 
   componentDidMount() {
-  
+
+    ipcRenderer.on('data-parsed', (event, arg) => {
+
+      this.setState({
+        disabled: false
+      });
+    })
 
   }
 
@@ -25,7 +33,7 @@ export class RealTimeCrown extends React.Component{
     
       return(
     
-        <div>
+         <div style={this.state.disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
             
           <Paper>
               <Typography variant="body1">

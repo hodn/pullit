@@ -1,3 +1,4 @@
+const { ipcRenderer } = window.require('electron');
 import React from 'react';
 import {Button, Paper, Typography} from '@material-ui/core';
 
@@ -5,13 +6,20 @@ export class RealTimeLenght extends React.Component{
   constructor(props){
     super(props);
     this.state = {
+      disabled: true
       
     }
 
   }
 
   componentDidMount() {
-  
+
+    ipcRenderer.on('data-parsed', (event, arg) => {
+
+      this.setState({
+        disabled: false
+      });
+    })
 
   }
 
@@ -25,7 +33,7 @@ export class RealTimeLenght extends React.Component{
     
       return(
     
-        <div>
+        <div style={this.state.disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
           <Paper>
                 <Typography variant="body1">
               Lenght Control
@@ -35,7 +43,7 @@ export class RealTimeLenght extends React.Component{
                 <Button id="control" variant="contained" onClick={(e) => this.props.lenghtHandler("l3")}>2 m</Button> 
                 <Button id="control" variant="contained" onClick={(e) => this.props.lenghtHandler("l4")}>3 m</Button>
                 <Button id="control" variant="contained" color="secondary" onClick={(e) => this.props.undo()}>Undo</Button>
-                <Button id="control" variant="contained" color="secondary" onClick={(e) => this.props.lenghtReset("delete")}>Delete</Button> 
+                <Button id="control" variant="contained" color="secondary" onClick={(e) => this.props.lenghtReset()}>Delete</Button> 
             
           </Paper>
               

@@ -103,6 +103,7 @@ export class RealTimeView extends React.Component{
     this._isMounted = false
 }
   
+  // Incrementing a tool number via its ID
   lenghtHandler(id){
     this.setState(state => ({
       prevToolsData: [...state.prevToolsData, state.toolsData],
@@ -112,7 +113,7 @@ export class RealTimeView extends React.Component{
       }
   }), () => {this.countLenght()})
 }
-
+  // Counting length from tool numbers
   countLenght(){
   const l1 = 1
   const l2 = 1.5
@@ -127,15 +128,15 @@ export class RealTimeView extends React.Component{
     }
 }), () => {this.updateCSV()})
 }
-
+  // Reseting tools data and tool history
   lenghtReset(){
     this.setState((state) => ({
+      prevToolsData: [...state.prevToolsData, state.toolsData],
       toolsData: {l1: 0, l2: 0, l3: 0, l4: 0, total: 0, c: state.toolsData.c},
-      prevToolsData: []
-    }), () => {this.updateCSV()})
+    }), () => {this.updateCSV("reset")})
   
 }
-
+  // Reverting to a previous tools state
   undo(){
     
     if (this.state.prevToolsData.length > 0){
@@ -148,24 +149,34 @@ export class RealTimeView extends React.Component{
 }
 
   updateCSV(event){
-    ipcRenderer.send("tools-updated", this.state.toolsData)
-
-    if (event === "undo" && this.state.events_ch1.length > 0){
-      this.setState({
-        events_ch1: this.state.events_ch1.filter((_, i) => i !== (this.state.events_ch1.length-1)),
-        events_ch2: this.state.events_ch2.filter((_, i) => i !== (this.state.events_ch2.length-1)),
-      });
-
-      if(this.state.prevToolsData.length > 1){
-
-        this.setState({
-          prevToolsData: this.state.prevToolsData.filter((_, i) => i !== (this.state.prevToolsData.length-1)),
-        });
-
-      }
-    }
     
-    if(this.state.data_ch1.length > 0 && event !== "undo"){
+    // Undo pressed
+    if(event === "undo"){
+
+        // Remove last item in tools history
+        if (this.state.prevToolsData.length >= 1){
+          
+          ipcRenderer.send("tools-updated", {data: this.state.toolsData, change: -1})
+
+          this.setState({
+            prevToolsData: this.state.prevToolsData.filter((_, i) => i !== (this.state.prevToolsData.length-1)),
+          });
+        }
+        
+        // Remove last event 
+        if (this.state.events_ch1.length > 0){
+          this.setState({
+            events_ch1: this.state.events_ch1.filter((_, i) => i !== (this.state.events_ch1.length-1)),
+            events_ch2: this.state.events_ch2.filter((_, i) => i !== (this.state.events_ch2.length-1)),
+          });
+  
+        }
+
+    }// Saves every change as an event - including reset
+    else if(this.state.data_ch1.length > 0){
+    
+    ipcRenderer.send("tools-updated", {data: this.state.toolsData, change: 1})
+    
     const last_ch1 = this.state.data_ch1[this.state.data_ch1.length-1]
     const last_ch2 = this.state.data_ch2[this.state.data_ch2.length-1]
     this.setState(state => ({

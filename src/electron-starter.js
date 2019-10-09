@@ -51,7 +51,6 @@ app.on('window-all-closed', function () {
         // If the windows is closed while recording, save the CSV record and clear the array
         if(recordingON === true){
             saveRecord(csvRecord)
-            csvRecord = []
         }
         app.quit()
         
@@ -215,16 +214,16 @@ ipcMain.on('clear-to-send', (event, arg) => {
             const parser = port.pipe(new Delimiter({ delimiter: [0x00] }))
             
             // Init of buffers
-            const ch1Buffer = []
-            const ch2Buffer = []
-            const ch3Buffer = []
-            const ch4Buffer = []
+            const ch1Buffer = [] // Torque
+            const ch2Buffer = [] // Force
+            const ch3Buffer = [] // Revolutions
+            const ch4Buffer = [] // Step checker
             
             //Variables for RPM calculations
             let rpm = 0
             const rpmBuffer = []
             
-            // Buffer size - 25Hz 
+            // Buffer size - hardware refresh rate 25Hz 
             const refreshRate = 25
             
             // Init drill tools
@@ -237,13 +236,13 @@ ipcMain.on('clear-to-send', (event, arg) => {
             let toolChanged = 0
 
             ipcMain.on('tools-updated', (event, arg) => {
-                lenght_1 = arg.l1
-                lenght_2 = arg.l2
-                lenght_3 = arg.l3
-                lenght_4 = arg.l4
-                totalLenght = arg.total
-                crown = arg.c
-                toolChanged = 1
+                lenght_1 = arg.data.l1
+                lenght_2 = arg.data.l2
+                lenght_3 = arg.data.l3
+                lenght_4 = arg.data.l4
+                totalLenght = arg.data.total
+                crown = arg.data.c
+                toolChanged = arg.change
             })
 
             // Switches the port into "flowing mode"
@@ -258,30 +257,33 @@ ipcMain.on('clear-to-send', (event, arg) => {
                     ch3Buffer.push(Math.abs(channelData[2]))
                     ch4Buffer.push(channelData[3])
 
-                    // 10 values for peak detection - every 400ms
+                    // 10 values for peak detection -> every 400ms
                     if(ch3Buffer.length >= 10){
                         const signals = zscore(ch3Buffer, {lag: 3, threshold: 5.2})  
                         
+                        // Push detected rotation to buffer - timestamp
                         if (rotationDetector(signals)) {
                             rpmBuffer.push(Date.now())
                             console.log(Date.now());
                         }                                                  
-                        
+                        //Empty buffer
                         ch3Buffer.splice(0, 10)
                     }
 
-                    
+                    // RPM reset after 15 sec inactivity
                     if(Date.now() - rpmBuffer[rpmBuffer.length-1] > 15000){
                         rpm = 0
                         rpmBuffer.splice(0, rpmBuffer.length)
                     }
 
+                    // Calculation of RPM from timespan between 7 rotations
                     if (rpmBuffer.length >= 7){
 
                         const elapsedTime = rpmBuffer[rpmBuffer.length-1] - rpmBuffer[0]
                         rpm = ((60000 / elapsedTime) * 7) 
                         
-                        rpmBuffer.splice(0, 4)
+                        //Partly clearing buffer - avoiding false peak, faster refresh
+                        rpmBuffer.splice(0, 3)
                         
                     }
                    
@@ -309,14 +311,14 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         if(recordingON === true){
                             const csvSet = {
                                 'Time': new Date().toLocaleTimeString(),
-                                'ch1': localeFormat(ch1,2), 
-                                'ch2': localeFormat(ch2,2), 
-                                'ch3': localeFormat(rpm,1),
+                                'ch1': localeFormat(ch1, 2), 
+                                'ch2': localeFormat(ch2, 2), 
+                                'ch3': localeFormat(rpm, 1),
                                 'l1': lenght_1, 
                                 'l2': lenght_2, 
                                 'l3': lenght_3,
                                 'l4': lenght_4,
-                                'total': localeFormat(totalLenght,1),
+                                'total': localeFormat(totalLenght, 1),
                                 'c': crown,
                                 'change': toolChanged
                             }
