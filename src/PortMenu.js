@@ -1,7 +1,8 @@
-const { ipcRenderer } = window.require('electron');
 import Select from '@material-ui/core/Select';
 import React from 'react';
 import { Button, MenuItem, FormControl, InputLabel, FormHelperText } from '@material-ui/core';
+
+const { ipcRenderer } = window.require('electron');
 
 export class PortMenu extends React.Component{
     constructor(props){

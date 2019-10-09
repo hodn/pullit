@@ -1,6 +1,6 @@
-const { ipcRenderer } = window.require('electron');
 import React from 'react';
 import {Button, Paper, Typography} from '@material-ui/core';
+const { ipcRenderer } = window.require('electron');
 
 export class RealTimeCrown extends React.Component{
   constructor(props){

@@ -1,10 +1,11 @@
-const { ipcRenderer } = window.require('electron');
 import React from 'react';
 import { HistoryGraph } from './HistoryGraph.js';
 import DateFnsUtils from "@date-io/date-fns";
 import { Button, Card, Typography, CardActions, CardContent } from '@material-ui/core';
 import {InsertDriveFile, Timeline} from '@material-ui/icons'
 import { MuiPickersUtilsProvider, DateTimePicker } from "@material-ui/pickers";
+
+const { ipcRenderer } = window.require('electron');
 
 export class HistoryView extends React.Component{
     constructor(props){

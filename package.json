@@ -1,7 +1,7 @@
 {
   "name": "drill-app",
   "productName": "Drill Analytics",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Hoang Doan",
   "private": true,
   "homepage": "./",
@@ -11,7 +11,7 @@
     "electron-packager": "^13.1.1",
     "electron-rebuild": "^1.8.5",
     "react": "^16.8.6",
-    "react-scripts": "0.8.5"
+    "react-scripts": "3.1.1"
   },
   "dependencies": {
     "@date-io/date-fns": "^1.3.7",
@@ -50,15 +50,9 @@
   "build": {
     "appId": "cz.albertov.drillapp",
     "extends": null,
-    "files": [
-      "./build/**/*",
-      "./src/electron-starter.js"
-    ],
-    "nsis": {
-      "perMachine": true
-    },
-    "linux": {
-      "target": "AppImage"
+    "win": {
+      "requestedExecutionLevel": "highestAvailable",
+      "target": "nsis"
     }
   },
   "browserslist": [

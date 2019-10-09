@@ -1,13 +1,13 @@
+// Peak detection lib
 const { Parser } = require('json2csv');
+const smoothed_z_score = require('./zscore.js');
 const fs = require('fs');
 // Module to include electron
 const electron = require('electron');
-// Peak detection lib
-const zscore = require ('./zscore.js');
 // Module for file paths
 const path = require('path');
 // Module for hot reload 
-require('electron-reload')(__dirname, { electron: require('${__dirname}/../../node_modules/electron') })
+//require('electron-reload')(__dirname, { electron: require('${__dirname}/../../node_modules/electron') })
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
@@ -26,7 +26,7 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:3000');
     
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
     
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
@@ -259,7 +259,7 @@ ipcMain.on('clear-to-send', (event, arg) => {
 
                     // 10 values for peak detection -> every 400ms
                     if(ch3Buffer.length >= 10){
-                        const signals = zscore(ch3Buffer, {lag: 3, threshold: 5.2})  
+                        const signals = smoothed_z_score(ch3Buffer, {lag: 3, threshold: 5.2})  
                         
                         // Push detected rotation to buffer - timestamp
                         if (rotationDetector(signals)) {

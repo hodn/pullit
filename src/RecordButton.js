@@ -1,7 +1,7 @@
-const { ipcRenderer } = window.require('electron');
 import React from 'react';
 import { Button } from '@material-ui/core';
 import { FiberManualRecord, Stop } from '@material-ui/icons';
+const { ipcRenderer } = window.require('electron');
 
 export class RecordButton extends React.Component{
     constructor(props){

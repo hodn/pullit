@@ -1,8 +1,8 @@
-const { ipcRenderer } = window.require('electron');
 import Select from '@material-ui/core/Select';
 import React from 'react';
 import { Button, MenuItem, FormControl, InputLabel, Card, CardContent, Typography, CardActions } from '@material-ui/core';
 import { Folder, SettingsInputHdmi} from '@material-ui/icons';
+const { ipcRenderer } = window.require('electron');
 
 export class SettingsView extends React.Component{
     constructor(props){

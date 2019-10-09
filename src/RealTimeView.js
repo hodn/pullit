@@ -1,10 +1,10 @@
-const { ipcRenderer } = window.require('electron');
 import React from 'react';
 import { RealTimeGraph } from './RealTimeGraph.js';
 import { RealTimeInfo} from './RealTimeInfo.js';
 import { RealTimeLenght } from './RealTimeLenght';
 import { RealTimeCrown } from './RealTimeCrown';
 import { Grid } from '@material-ui/core';
+const { ipcRenderer } = window.require('electron');
 
 export class RealTimeView extends React.Component{
   constructor(props){
