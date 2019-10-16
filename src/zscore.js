@@ -14,7 +14,7 @@ function stddev(arr) {
     return Math.sqrt(arr.reduce(r, 0.0) / arr.length)
 }
 
-function smoothed_z_score(y, params) {
+module.exports = function smoothed_z_score(y, params) {
     var p = params || {}
     // init cooefficients
     const lag = p.lag || 5
@@ -61,5 +61,3 @@ function smoothed_z_score(y, params) {
 
     return signals
 }
-
-module.exports = smoothed_z_score

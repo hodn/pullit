@@ -1,17 +1,19 @@
-// Peak detection lib
+// Module for file paths
+const path = require('path');
+// JSON to CSV lib
 const { Parser } = require('json2csv');
-const smoothed_z_score = require('./zscore.js');
+// file systemy
 const fs = require('fs');
 // Module to include electron
 const electron = require('electron');
-// Module for file paths
-const path = require('path');
 // Module for hot reload 
 //require('electron-reload')(__dirname, { electron: require('${__dirname}/../../node_modules/electron') })
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
+// Peak detection lib
+const smoothed_z_score = require("./zscore.js");
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -22,8 +24,8 @@ function createWindow() {
     mainWindow = new BrowserWindow();
     mainWindow.maximize();
     // and load the index.html of the app.
-    //mainWindow.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
-    mainWindow.loadURL('http://localhost:3000');
+    mainWindow.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
+    //mainWindow.loadURL('http://localhost:3000');
     
     // Open the DevTools.
     //mainWindow.webContents.openDevTools();
@@ -202,7 +204,6 @@ ipcMain.on('get-csv-data', (event, arg) => {
 })
     
 // On clear to send - start parsing data
-
 ipcMain.on('clear-to-send', (event, arg) => {
         
         // Port init from user settings
