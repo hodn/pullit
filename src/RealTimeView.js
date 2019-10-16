@@ -46,9 +46,9 @@ export class RealTimeView extends React.Component{
     ipcRenderer.on('data-parsed', (event, arg) => { 
       
         // parsing packets from device
-        const packet_ch1 = {x: arg.time, y: arg.ch1}
-        const packet_ch2 = {x: arg.time, y: arg.ch2} 
-        const packet_ch3 = {x: arg.time, y: arg.ch3} 
+        const packet_ch1 = {x: arg.time, y: arg.ch1} // Torque
+        const packet_ch2 = {x: arg.time, y: arg.ch2} // Force
+        const packet_ch3 = {x: arg.time, y: arg.ch3} // RPM
   
         const timeWindow = 300 //seconds
 

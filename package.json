@@ -49,6 +49,7 @@
   "build": {
     "appId": "cz.albertov.drillapp",
     "extends": null,
+    "asar": false,
     "files": [
       "./build/**/*",
       "./src/electron-starter.js",

@@ -281,7 +281,8 @@ ipcMain.on('clear-to-send', (event, arg) => {
                     if (rpmBuffer.length >= 7){
 
                         const elapsedTime = rpmBuffer[rpmBuffer.length-1] - rpmBuffer[0]
-                        rpm = ((60000 / elapsedTime) * 7) 
+                        const rpmRaw = ((60000 / elapsedTime) * 7)
+                        rpm = localeFormat(rpmRaw, 1) //Converted to locale (,)
                         
                         //Partly clearing buffer - avoiding false peak, faster refresh
                         rpmBuffer.splice(0, 3)
@@ -290,15 +291,24 @@ ipcMain.on('clear-to-send', (event, arg) => {
                    
                     // Aggregation from the buffer and buffer release
                     if (ch4Buffer.length >= refreshRate) {
-                        const ch1 = aggregator(ch1Buffer)
-                        const ch2 = aggregator(ch2Buffer)
+                        
+                        // Aggregated data in uV
+                        const ch1 = aggregator(ch1Buffer) 
+                        const ch2 = aggregator(ch2Buffer) 
+                        
+                        //Conversion constants from uV to actual unit
+                        const uVtoNm = 1.236322464 // Torque
+                        const uVtoN = 87.42184785 // Force
+
+                        const torque = localeFormat(ch1*uVtoNm, 2)
+                        const force = localeFormat(ch2*uVtoN, 2)
                         
                         // Aggregation data packet for Renderer
                         const aggSet = {
                             'time': Date.now(),
-                            'ch1': ch1, 
-                            'ch2': ch2, 
-                            'ch3': rpm.toFixed(1),
+                            'ch1': torque, 
+                            'ch2': force, 
+                            'ch3': rpm,
                         }
                         
                         ch1Buffer.splice(0, refreshRate)
@@ -312,9 +322,9 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         if(recordingON === true){
                             const csvSet = {
                                 'Time': new Date().toLocaleTimeString(),
-                                'ch1': localeFormat(ch1, 2), 
-                                'ch2': localeFormat(ch2, 2), 
-                                'ch3': localeFormat(rpm, 1),
+                                '[Nm]': torque, 
+                                '[N]': force, 
+                                '[RPM]': rpm,
                                 'l1': lenght_1, 
                                 'l2': lenght_2, 
                                 'l3': lenght_3,
@@ -358,9 +368,9 @@ function arrayParserEZ24(dataArray){
 function unitConverter(number){
 
     const unit = 8388608 / 3 // AD value divided by V range (-3 to 3V)
-    let result = (number/unit) - 3
+    let convertedValue = ((number/unit) - 3) * 1000000 // Converted to voltage (uV)
     
-    return result
+    return convertedValue
 }
 // Detects a rotation - returns 1 or 0
 function rotationDetector(signals){
@@ -387,7 +397,7 @@ function aggregator(bufferArray){
     total += bufferArray[i];
 }
     let avg = total / bufferArray.length;
-    return parseFloat(avg.toFixed(2))
+    return avg
 
 }
 
