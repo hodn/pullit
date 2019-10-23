@@ -33,14 +33,14 @@ export class RecordButton extends React.Component{
       if (this.state.recordingON === false){ 
         return(
       
-        <Button className="button" onClick={this.changeRecording} variant="contained" color="primary">Record <FiberManualRecord/> </Button>
+        <Button className="button" id="record" onClick={this.changeRecording} variant="contained" color="primary">Record <FiberManualRecord/> </Button>
       
     )}
       
       else {
         return(
       
-          <Button onClick={this.changeRecording} variant="contained" color="secondary">Recording <Stop/> </Button>
+          <Button onClick={this.changeRecording} id="record" variant="contained" color="secondary">Recording <Stop/> </Button>
         
       )}
     }

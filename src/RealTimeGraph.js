@@ -1,5 +1,6 @@
 import React from 'react';
 import {XAxis, YAxis, LineSeries, FlexibleWidthXYPlot, MarkSeries} from 'react-vis';
+import Typography from '@material-ui/core/Typography';
 
 export class RealTimeGraph extends React.Component{
   constructor(props){
@@ -24,7 +25,8 @@ export class RealTimeGraph extends React.Component{
       return(
     
         <div>
-          <FlexibleWidthXYPlot height={200} xType="time" yDomain={[-2,2]}>
+          <Typography id="graph"> {this.props.name} </Typography>
+          <FlexibleWidthXYPlot height={250} xType="time">
           <LineSeries data={this.props.data} animation />
           <MarkSeries data={this.props.eventData}/>
           <XAxis/>

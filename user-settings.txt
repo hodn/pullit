@@ -1,1 +1,1 @@
-COM5,C:\Users\Hoang\Desktop
+COM21,C:\Users\Hoang\Desktop

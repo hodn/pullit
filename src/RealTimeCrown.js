@@ -16,11 +16,11 @@ export class RealTimeCrown extends React.Component{
 
     ipcRenderer.on('data-parsed', (event, arg) => {
 
-      this.setState({
-        disabled: false
-      });
-    })
+      setTimeout(function () {
+        this.setState({disabled: false});
+      }.bind(this), 1000)
 
+    })
   }
 
   componentWillUnmount(){

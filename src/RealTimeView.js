@@ -222,12 +222,13 @@ export class RealTimeView extends React.Component{
         <div>
           
           <Grid container spacing={1}>
+            
             <Grid item xs={12} md={12}>  
-              <RealTimeGraph data={this.state.data_ch1} eventData={this.state.events_ch1}/>
+              <RealTimeGraph name="Torque" data={this.state.data_ch1} eventData={this.state.events_ch1}/>
             </Grid>
             
             <Grid item xs={12} md={12}>  
-              <RealTimeGraph data={this.state.data_ch2} eventData={this.state.events_ch2} />
+              <RealTimeGraph name="Force" data={this.state.data_ch2} eventData={this.state.events_ch2} />
             </Grid>
 
             <Grid item xs={12} md={12}>  

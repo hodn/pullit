@@ -1,6 +1,15 @@
 import Select from '@material-ui/core/Select';
+import Button from '@material-ui/core/Button';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Typography from '@material-ui/core/Typography';
+import CardActions from '@material-ui/core/CardActions';
 import React from 'react';
-import { Button, MenuItem, FormControl, InputLabel, Card, CardContent, Typography, CardActions } from '@material-ui/core';
+
+
 import { Folder, SettingsInputHdmi} from '@material-ui/icons';
 const { ipcRenderer } = window.require('electron');
 

@@ -220,9 +220,31 @@ ipcMain.on('clear-to-send', (event, arg) => {
             const ch3Buffer = [] // Revolutions
             const ch4Buffer = [] // Step checker
             
-            //Variables for RPM calculations
+            // Variables for RPM calculations
             let rpm = 0
             const rpmBuffer = []
+
+            // Taring constants 
+            let tareTorque = 0;
+            let tareForce = 0;
+            
+            // Taring the variable chosen by user
+            ipcMain.on('tare', (event, arg) => {
+                
+                switch(arg) {
+                    
+                    case 1:
+                        tareTorque += rawTorque;
+                        toolChanged = 1
+                    break;
+                    
+                    case 2:
+                        tareForce += rawForce;
+                        toolChanged = 1
+                    break;
+                    default:
+                    return
+                }})
             
             // Buffer size - hardware refresh rate 25Hz 
             const refreshRate = 25
@@ -296,12 +318,15 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         const ch1 = aggregator(ch1Buffer) 
                         const ch2 = aggregator(ch2Buffer) 
                         
-                        //Conversion constants from uV to actual unit
+                        // Conversion constants from uV to actual unit
                         const uVtoNm = 1.236322464 // Torque
                         const uVtoN = 87.42184785 // Force
 
-                        const torque = localeFormat(ch1*uVtoNm, 2)
-                        const force = localeFormat(ch2*uVtoN, 2)
+                        const rawTorque = ch1 - tareTorque
+                        const rawForce = ch2 - tareForce
+
+                        const torque = localeFormat(rawTorque*uVtoNm, 2)
+                        const force = localeFormat(rawForce*uVtoN, 2)
                         
                         // Aggregation data packet for Renderer
                         const aggSet = {
