@@ -138,9 +138,9 @@ export class HistoryView extends React.Component{
                 </CardActions>
             </Card>
         
-          <HistoryGraph channel="1" data={this.state.data_ch1} events={this.state.events_ch1}/>
-          <HistoryGraph channel="2" data={this.state.data_ch2} events={this.state.events_ch2}/>
-          <HistoryGraph channel="3" data={this.state.data_ch3} events={this.state.events_ch3}/>
+          <HistoryGraph name="Torque" data={this.state.data_ch1} events={this.state.events_ch1}/>
+          <HistoryGraph name="Force" data={this.state.data_ch2} events={this.state.events_ch2}/>
+          <HistoryGraph name="RPM" data={this.state.data_ch3} events={this.state.events_ch3}/>
         </div>
       )
     

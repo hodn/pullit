@@ -24,8 +24,8 @@ function createWindow() {
     mainWindow = new BrowserWindow();
     mainWindow.maximize();
     // and load the index.html of the app.
-    mainWindow.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
-    //mainWindow.loadURL('http://localhost:3000');
+    //mainWindow.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
+    mainWindow.loadURL('http://localhost:3000');
     
     // Open the DevTools.
     //mainWindow.webContents.openDevTools();
@@ -175,7 +175,7 @@ ipcMain.on('load-csv', (event, arg) => {
     }, function (files) {
         if (files !== undefined) {
             csvFilePath = files.toString()
-            csv()
+            csv({delimiter: ";"})
             .fromFile(csvFilePath)
             .then((jsonObj)=>{
             csvHistory = jsonObj
@@ -227,6 +227,8 @@ ipcMain.on('clear-to-send', (event, arg) => {
             // Taring constants 
             let tareTorque = 0;
             let tareForce = 0;
+            let rawTorque = 0;
+            let rawForce = 0;
             
             // Taring the variable chosen by user
             ipcMain.on('tare', (event, arg) => {
@@ -235,12 +237,12 @@ ipcMain.on('clear-to-send', (event, arg) => {
                     
                     case 1:
                         tareTorque += rawTorque;
-                        toolChanged = 1
+                        toolChanged = "T"
                     break;
                     
                     case 2:
                         tareForce += rawForce;
-                        toolChanged = 1
+                        toolChanged = "T"
                     break;
                     default:
                     return
@@ -287,7 +289,7 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         // Push detected rotation to buffer - timestamp
                         if (rotationDetector(signals)) {
                             rpmBuffer.push(Date.now())
-                            console.log(Date.now());
+                            console.log(Date.now() + " Rotation");
                         }                                                  
                         //Empty buffer
                         ch3Buffer.splice(0, 10)
@@ -322,8 +324,8 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         const uVtoNm = 1.236322464 // Torque
                         const uVtoN = 87.42184785 // Force
 
-                        const rawTorque = ch1 - tareTorque
-                        const rawForce = ch2 - tareForce
+                        rawTorque = ch1 - tareTorque
+                        rawForce = ch2 - tareForce
 
                         const torque = localeFormat(rawTorque*uVtoNm, 2)
                         const force = localeFormat(rawForce*uVtoN, 2)
@@ -331,8 +333,8 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         // Aggregation data packet for Renderer
                         const aggSet = {
                             'time': Date.now(),
-                            'ch1': torque, 
-                            'ch2': force, 
+                            'ch1': rawTorque*uVtoNm, 
+                            'ch2': rawForce*uVtoN, 
                             'ch3': rpm,
                         }
                         
@@ -346,10 +348,10 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         //If recording is ON - append the data to CSV array
                         if(recordingON === true){
                             const csvSet = {
-                                'Time': new Date().toLocaleTimeString(),
-                                '[Nm]': torque, 
-                                '[N]': force, 
-                                '[RPM]': rpm,
+                                'Time': new Date(),
+                                'Nm': torque, 
+                                'N': force, 
+                                'RPM': rpm,
                                 'l1': lenght_1, 
                                 'l2': lenght_2, 
                                 'l3': lenght_3,
@@ -439,14 +441,14 @@ function filterCSV(file, start, end){
         if (file.hasOwnProperty(key)) {
           const timestamp = Date.parse(file[key].Time)
           if(timestamp >= start && timestamp <= end){
-              data_ch1.push({x: timestamp, y: file[key].ch1})
-              data_ch2.push({x: timestamp, y: file[key].ch2})
-              data_ch3.push({x: timestamp, y: file[key].ch3})
+              data_ch1.push({x: timestamp, y: converterToPointDecimals(file[key].Nm)})
+              data_ch2.push({x: timestamp, y: converterToPointDecimals(file[key].N)})
+              data_ch3.push({x: timestamp, y: converterToPointDecimals(file[key].RPM)})
 
               if(file[key].change === "1"){
-                events_ch1.push({x: timestamp, y: file[key].ch1})
-                events_ch2.push({x: timestamp, y: file[key].ch2})
-                events_ch3.push({x: timestamp, y: file[key].ch3})
+                events_ch1.push({x: timestamp, y: converterToPointDecimals(file[key].Nm)})
+                events_ch2.push({x: timestamp, y: converterToPointDecimals(file[key].N)})
+                events_ch3.push({x: timestamp, y: converterToPointDecimals(file[key].RPM)})
               }
           }
         }
@@ -486,5 +488,14 @@ function saveSettings(com, dir){
 }
 
 function localeFormat(number, decimals){
-    return parseFloat(number.toFixed(decimals)).toLocaleString()
+    const locale = parseFloat(number.toFixed(decimals)).toLocaleString()
+    const noSpaceLocale = locale.replace(/\s+/, "") 
+    
+    return noSpaceLocale
+}
+
+function converterToPointDecimals(numberString){
+    const converted = numberString.replace(",", ".");
+    
+    return parseFloat(converted)
 }

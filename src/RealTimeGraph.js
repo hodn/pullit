@@ -24,11 +24,11 @@ export class RealTimeGraph extends React.Component{
   render(){    
       return(
     
-        <div>
-          <Typography id="graph"> {this.props.name} </Typography>
-          <FlexibleWidthXYPlot height={250} xType="time">
-          <LineSeries data={this.props.data} animation />
-          <MarkSeries data={this.props.eventData}/>
+        <div id="graph">
+          <Typography> {this.props.name} </Typography>
+          <FlexibleWidthXYPlot height={200} xType="time" margin={{left: 70}}>
+          <LineSeries data={this.props.data} animation/>
+          <MarkSeries data={this.props.eventData} animation/>
           <XAxis/>
           <YAxis/>
         

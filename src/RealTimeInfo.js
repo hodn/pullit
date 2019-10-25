@@ -1,8 +1,6 @@
 import React from 'react';
 import {StatCard} from './StatCard';
 import { Grid } from '@material-ui/core';
-import Button from '@material-ui/core/Button';
-import { ExposureZero } from '@material-ui/icons';
 const { ipcRenderer } = window.require('electron');
 
 export class RealTimeInfo extends React.Component{
@@ -13,7 +11,6 @@ export class RealTimeInfo extends React.Component{
       
     }
     
-    this.tare = this.tare.bind(this);
   }
 
   componentDidMount() {
@@ -30,37 +27,20 @@ export class RealTimeInfo extends React.Component{
   componentWillUnmount(){
     
 }
-
-tare(id){
-  ipcRenderer.send('tare', id);
-  
-}
   
 // What the actual component renders
   render(){    
 
       return(
     
-      <div>
+      <div id="infobar">
         <Grid container spacing={1}>
-          <Grid item xs={3}>
+          <Grid item xs={4} >
             <StatCard name="Torque" data={this.props.drillData.torque} unit="Nm"/>
           </Grid>
           
-          <Grid item xs={1}>
-          <div style={this.state.disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
-            <Button size="small" id="tare" variant="outlined" color="primary" onClick={(e) => this.tare(1)}>Tare<ExposureZero/></Button>
-          </div>
-          </Grid>
-          
-          <Grid item xs={3}>
+          <Grid item xs={4}>
             <StatCard name="Force" data={this.props.drillData.force} unit="N"/>
-          </Grid>
-
-          <Grid item xs={1}>
-          <div style={this.state.disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
-            <Button size="small" id="tare" variant="outlined" color="primary" onClick={(e) => this.tare(2)}>Tare<ExposureZero/></Button>
-          </div>
           </Grid>
           
           <Grid item xs={4}>

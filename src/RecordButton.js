@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
 import { FiberManualRecord, Stop } from '@material-ui/icons';
 const { ipcRenderer } = window.require('electron');
 

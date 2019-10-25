@@ -1,5 +1,7 @@
 import React from 'react';
-import {Button, Paper, Typography} from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 const { ipcRenderer } = window.require('electron');
 
 export class RealTimeCrown extends React.Component{
@@ -9,6 +11,8 @@ export class RealTimeCrown extends React.Component{
       disabled: true
       
     }
+
+    this.tare = this.tare.bind(this);
 
   }
 
@@ -26,6 +30,12 @@ export class RealTimeCrown extends React.Component{
   componentWillUnmount(){
     
 }
+
+  tare(id){
+    ipcRenderer.send('tare', id);
+    this.props.tareScale();
+    
+  }  
   
 // What the actual component renders
   render(){    
@@ -37,12 +47,15 @@ export class RealTimeCrown extends React.Component{
             
           <Paper>
               <Typography variant="body1">
-              Crown Control
+              {"Crown & Tare Control"}
               </Typography>
               
               <Button id="control" variant="contained" onClick={(e) => this.props.crownHandler("c1")}>173 mm</Button>
               <Button id="control" variant="contained" onClick={(e) => this.props.crownHandler("c2")}>185 mm</Button>
               <Button id="control" variant="contained" onClick={(e) => this.props.crownHandler("c3")}>220 mm</Button>
+
+              <Button id="tare" variant="contained" color="primary" onClick={(e) => this.tare(1)}>Tare torque</Button>
+              <Button id="tare" variant="contained" color="primary" onClick={(e) => this.tare(2)}>Tare force</Button>
             
           </Paper>
           

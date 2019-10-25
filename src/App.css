@@ -1,5 +1,5 @@
 #control {
-  margin-right: 10px;
+  margin: 10px;
   height: 70px;
   width: 90px
 }
@@ -21,14 +21,20 @@
   margin: 5px
 }
 
-#tare{
-  margin: 15px;
-}
-
 #graph{
-  margin: 15px;
+  padding-left: 30px;
+  margin: 15px
 }
 
 #record{
-  margin: 5px;
+  margin: 8px;
+}
+
+#tare{
+  margin: 10px;
+  height: 70px
+}
+
+#infobar{
+  margin-bottom: 15px;
 }

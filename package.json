@@ -1,7 +1,8 @@
 {
   "name": "drill-app",
   "productName": "Drill Analytics",
-  "version": "0.2.0",
+  "version": "0.3.0",
+  "description": "PULLIT visualization and data manipulation app.",
   "author": "Hoang Doan",
   "private": true,
   "homepage": "./",
@@ -49,7 +50,7 @@
   "build": {
     "appId": "cz.albertov.drillapp",
     "extends": null,
-    "asar": false,
+    "asar": true,
     "files": [
       "./build/**/*",
       "./src/electron-starter.js",

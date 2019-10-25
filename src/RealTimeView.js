@@ -28,6 +28,7 @@ export class RealTimeView extends React.Component{
     this.undo = this.undo.bind(this)
     this.countLenght = this.countLenght.bind(this)
     this.updateCSV = this.updateCSV.bind(this)
+    this.tareScale = this.tareScale.bind(this)
   }
 
   componentDidMount() {
@@ -50,7 +51,7 @@ export class RealTimeView extends React.Component{
         const packet_ch2 = {x: arg.time, y: arg.ch2} // Force
         const packet_ch3 = {x: arg.time, y: arg.ch3} // RPM
   
-        const timeWindow = 300 //seconds
+        const timeWindow = 300 //seconds - data comes in every sec
 
         //adding data until timewindow is full
         if (this.state.data_ch1.length <= timeWindow){
@@ -60,7 +61,7 @@ export class RealTimeView extends React.Component{
             data_ch1: [...state.data_ch1, packet_ch1],
             data_ch2: [...state.data_ch2, packet_ch2],
             data_ch3: [...state.data_ch3, packet_ch3],
-            barData: {torque: packet_ch1.y, force: packet_ch2.y, revs: packet_ch3.y}
+            barData: {torque: packet_ch1.y.toFixed(2), force: packet_ch2.y.toFixed(2), revs: packet_ch3.y}
         }))}}
         else {
           const d_ch1 = this.state.data_ch1
@@ -89,7 +90,7 @@ export class RealTimeView extends React.Component{
             data_ch3: d_ch3,
             events_ch1: e_ch1,
             events_ch2: e_ch2,
-            barData: {torque: packet_ch1.y, force: packet_ch2.y, revs: packet_ch3.y}
+            barData: {torque: packet_ch1.y.toFixed(2), force: packet_ch2.y.toFixed(2), revs: packet_ch3.y}
             });
           }
         }
@@ -147,6 +148,19 @@ export class RealTimeView extends React.Component{
       this.updateCSV("undo")})
   }
 }
+
+  tareScale(){
+
+    this.setState((state) => ({
+      data_ch1: [],
+      data_ch2: [],
+      data_ch3: [],
+      events_ch1: [],
+      events_ch2: []
+      })
+    )
+
+  }
 
   updateCSV(event){
     
@@ -240,7 +254,7 @@ export class RealTimeView extends React.Component{
             </Grid>
             
             <Grid item xs={6}>  
-              <RealTimeCrown crownHandler={this.crownHandler} />
+              <RealTimeCrown crownHandler={this.crownHandler} tareScale={this.tareScale}/>
             </Grid>
             
           </Grid>
