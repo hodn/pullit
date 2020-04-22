@@ -321,8 +321,8 @@ ipcMain.on('clear-to-send', (event, arg) => {
                         const ch2 = aggregator(ch2Buffer) 
                         
                         // Conversion constants from uV to actual unit
-                        const uVtoNm = 1.236322464 // Torque
-                        const uVtoN = 87.42184785 // Force
+                        const uVtoNm = 1.261312238 // Torque
+                        const uVtoN = 90.3255523 // Force
 
                         rawTorque = ch1 - tareTorque
                         rawForce = ch2 - tareForce
